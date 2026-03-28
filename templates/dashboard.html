@@ -622,7 +622,7 @@ function drawHR(samples) {
     }
 
     // Y axis
-    ctx.fillStyle = 'var(--text3)';
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text2').trim();
     ctx.font = '10px Inter,sans-serif';
     ctx.textAlign = 'right';
     for (let i = 0; i <= 3; i++) {
@@ -707,7 +707,7 @@ function hrHover(e) {
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, cw, ch);
 
-    const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim() || '#888';
+    const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--text2').trim() || '#888';
     ctx.strokeStyle = lineCol;
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
@@ -871,7 +871,7 @@ function drawStressChart(ds) {
     }
 
     // X axis labels
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim();
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text2').trim();
     ctx.font = '8px Inter,sans-serif';
     ctx.textAlign = 'center';
     for (let hour = 0; hour <= 24; hour += 6) {
@@ -1349,7 +1349,7 @@ async function loadWeeklyVolumes() {
         const maxDur = Math.max(...weeks.map(w => w.duration_min), 1);
         const barW = Math.min((plotW / weeks.length) - 4, 28);
         const gap = (plotW - barW * weeks.length) / (weeks.length + 1);
-        const textCol = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim();
+        const textCol = getComputedStyle(document.documentElement).getPropertyValue('--text2').trim();
 
         for (let i = 0; i < weeks.length; i++) {
             const wk = weeks[i];
@@ -1502,7 +1502,7 @@ function drawBodyBattery(ds) {
     ctx.stroke();
 
     // Y axis
-    const textCol = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim();
+    const textCol = getComputedStyle(document.documentElement).getPropertyValue('--text2').trim();
     ctx.fillStyle = textCol;
     ctx.font = '8px Inter,sans-serif';
     ctx.textAlign = 'right';
