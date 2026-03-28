@@ -260,15 +260,20 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
 /* Week activity dots */
 .week-dots { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
-.week-dots-label { font-size: 0.58rem; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 0.3rem; }
+.week-dots-header { display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.3rem; }
+.week-dots-label { font-size: 0.58rem; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.cal-nav-sm { width: 20px; height: 20px; border-radius: 5px; }
 .week-dots-row { display: flex; gap: 0.3rem; }
-.wd { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg2); border: 2px solid var(--border); transition: all 0.2s; }
+.wd { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg2); border: 2px solid var(--border); transition: all 0.2s; cursor: pointer; }
+.wd:hover { border-color: var(--text3); }
 .wd .wd-letter { font-size: 0.55rem; font-weight: 700; color: var(--text3); }
 .wd.done { background: var(--green-dim); border-color: var(--green); }
 .wd.done .wd-letter { color: var(--green); }
 .wd.today { border-color: var(--text2); }
 .wd.today .wd-letter { color: var(--text); }
 .wd.today.done { border-color: var(--green); }
+.wd.selected { box-shadow: 0 0 0 2px var(--accent); }
+#sessionsDateLabel { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text2); }
 
 /* === Sessions === */
 .session-list { display: flex; flex-direction: column; gap: 0.35rem; }

@@ -164,49 +164,6 @@
         </div>
         {% endif %}
 
-        <!-- Journal -->
-        <div class="card card-journal">
-            <div class="card-label">Journal <button class="toggle-form-btn" onclick="toggleJournal()">+</button></div>
-            <div id="journalDisplay"></div>
-            <div id="journalForm" style="display:none">
-                <div class="journal-field-label">Mood</div>
-                <div class="journal-mood-row" id="moodRow">
-                    <button class="journal-mood-btn" data-val="1" onclick="selectMood(1)">1<br><span class="mood-face">😫</span></button>
-                    <button class="journal-mood-btn" data-val="2" onclick="selectMood(2)">2<br><span class="mood-face">😕</span></button>
-                    <button class="journal-mood-btn" data-val="3" onclick="selectMood(3)">3<br><span class="mood-face">😐</span></button>
-                    <button class="journal-mood-btn" data-val="4" onclick="selectMood(4)">4<br><span class="mood-face">🙂</span></button>
-                    <button class="journal-mood-btn" data-val="5" onclick="selectMood(5)">5<br><span class="mood-face">😁</span></button>
-                </div>
-                <div class="journal-field-label">Fatigue</div>
-                <div class="journal-mood-row" id="fatigueRow">
-                    <button class="journal-mood-btn" data-val="1" onclick="selectFatigue(1)">1<br><span class="mood-face">🥱</span></button>
-                    <button class="journal-mood-btn" data-val="2" onclick="selectFatigue(2)">2<br><span class="mood-face">😮‍💨</span></button>
-                    <button class="journal-mood-btn" data-val="3" onclick="selectFatigue(3)">3<br><span class="mood-face">😐</span></button>
-                    <button class="journal-mood-btn" data-val="4" onclick="selectFatigue(4)">4<br><span class="mood-face">💪</span></button>
-                    <button class="journal-mood-btn" data-val="5" onclick="selectFatigue(5)">5<br><span class="mood-face">⚡</span></button>
-                </div>
-                <div class="journal-field-label">Nutrition</div>
-                <div class="journal-mood-row" id="nutritionRow">
-                    <button class="journal-mood-btn nutr-btn" data-val="poor" onclick="selectNutrition('poor')">Poor</button>
-                    <button class="journal-mood-btn nutr-btn" data-val="ok" onclick="selectNutrition('ok')">OK</button>
-                    <button class="journal-mood-btn nutr-btn" data-val="good" onclick="selectNutrition('good')">Good</button>
-                </div>
-                <textarea id="journalNotes" class="form-input" rows="2" placeholder="Notes..." style="margin-top:0.4rem;width:100%"></textarea>
-                <button class="btn-log" onclick="saveJournal()" style="margin-top:0.4rem">Save</button>
-            </div>
-        </div>
-
-        <!-- Pace Zones -->
-        <div id="paceZonesCard" class="card" style="display:none">
-            <div class="card-label">Running Pace Zones</div>
-            <div id="paceZonesList"></div>
-        </div>
-
-        <!-- Race Predictions -->
-        <div id="racePredCard" class="card" style="display:none">
-            <div class="card-label">Race Predictions</div>
-            <div id="raceGrid" class="race-grid"></div>
-        </div>
     </div>
 
     <!-- ========== CENTER: Training ========== -->
@@ -282,20 +239,35 @@
                 </div>
                 {% endif %}
                 <div class="week-dots">
-                    <span class="week-dots-label">This week</span>
+                    <div class="week-dots-header">
+                        <button class="cal-nav cal-nav-sm" onclick="weekNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="15 18 9 12 15 6"/></svg></button>
+                        <span class="week-dots-label" id="weekLabel">This week</span>
+                        <button class="cal-nav cal-nav-sm" onclick="weekNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg></button>
+                    </div>
                     <div class="week-dots-row" id="weekDots"></div>
                 </div>
                 <div class="volume-chart" id="volumeChartWrap" style="display:none">
                     <span class="week-dots-label">Weekly Volume (8 weeks)</span>
                     <canvas id="volumeCanvas" width="280" height="70"></canvas>
                 </div>
+
+                <!-- Pace Zones & Race Predictions inside training summary -->
+                <div id="paceZonesCard" style="display:none">
+                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Pace Zones</div>
+                    <div id="paceZonesList"></div>
+                </div>
+                <div id="racePredCard" style="display:none">
+                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Race Predictions</div>
+                    <div id="raceGrid" class="race-grid"></div>
+                </div>
             </div>
         </div>
         {% endif %}
 
-        <div class="card">
-            <div class="card-label">Sessions {% if exercises|length > 5 %}<button class="toggle-form-btn" onclick="document.getElementById('sessionList').classList.toggle('sessions-expanded')">{{ exercises|length }}</button>{% endif %}</div>
-            <div id="sessionList" class="session-list sessions-compact">
+        <!-- Sessions (hidden by default, shown on day click) -->
+        <div class="card" id="sessionsCard" style="display:none">
+            <div class="card-label">Sessions <span id="sessionsDateLabel"></span></div>
+            <div id="sessionList" class="session-list">
                 {% if exercises %}
                 {% for e in exercises %}
                 <div class="session-item" data-date="{{ e.date }}" id="session-{{ e.id }}">
@@ -311,8 +283,6 @@
                     {% endif %}
                 </div>
                 {% endfor %}
-                {% else %}
-                <div class="empty-state"><p>No sessions yet</p><span>Log manually or sync your watch</span></div>
                 {% endif %}
             </div>
         </div>
@@ -416,8 +386,9 @@ function setDate(ds) {
     updateScoreCards(ds);
     updatePlanDay(ds);
     fetchHR(ds);
-    loadJournal(ds);
     renderCalendar();
+    renderWeekDots();
+    showSessionsFor(ds);
     history.replaceState(null, '', ds === today ? '/dashboard' : '/dashboard/' + ds);
 }
 
@@ -966,14 +937,30 @@ function renderCalendar() {
 }
 function calNav(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCalendar(); }
 
-// Week activity dots
+// Week activity dots with navigation
+let weekOffset = 0;
+
 function renderWeekDots() {
     const el = document.getElementById('weekDots');
+    const label = document.getElementById('weekLabel');
     if (!el) return;
+
     const now = new Date();
-    const dayOfWeek = (now.getDay() + 6) % 7; // Mon=0
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - dayOfWeek);
+    const dayOfWeek = (now.getDay() + 6) % 7;
+    const thisMonday = new Date(now);
+    thisMonday.setDate(now.getDate() - dayOfWeek);
+
+    const monday = new Date(thisMonday);
+    monday.setDate(thisMonday.getDate() + weekOffset * 7);
+
+    if (weekOffset === 0) label.textContent = 'This week';
+    else if (weekOffset === -1) label.textContent = 'Last week';
+    else {
+        const ms = monday.toISOString().slice(5, 10);
+        const se = new Date(monday); se.setDate(monday.getDate() + 6);
+        label.textContent = ms + ' — ' + se.toISOString().slice(5, 10);
+    }
+
     const days = ['M','T','W','T','F','S','S'];
     let html = '';
     for (let i = 0; i < 7; i++) {
@@ -982,10 +969,39 @@ function renderWeekDots() {
         const ds = d.toISOString().slice(0, 10);
         const done = exerciseDates.has(ds);
         const isToday = ds === today;
-        html += `<div class="wd ${done ? 'done' : ''} ${isToday ? 'today' : ''}"><span class="wd-letter">${days[i]}</span></div>`;
+        const isSel = ds === currentDate;
+        html += `<div class="wd ${done ? 'done' : ''} ${isToday ? 'today' : ''} ${isSel ? 'selected' : ''}" onclick="setDate('${ds}');showSessionsFor('${ds}')"><span class="wd-letter">${days[i]}</span></div>`;
     }
     el.innerHTML = html;
 }
+
+function weekNav(dir) {
+    weekOffset += dir;
+    if (weekOffset > 0) weekOffset = 0;
+    renderWeekDots();
+}
+
+function showSessionsFor(ds) {
+    const card = document.getElementById('sessionsCard');
+    const list = document.getElementById('sessionList');
+    const label = document.getElementById('sessionsDateLabel');
+    const items = list.querySelectorAll('.session-item');
+
+    let visible = 0;
+    items.forEach(item => {
+        const match = item.dataset.date === ds;
+        item.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    if (visible > 0) {
+        card.style.display = '';
+        label.textContent = '— ' + ds;
+    } else {
+        card.style.display = 'none';
+    }
+}
+
 renderWeekDots();
 
 // Init
