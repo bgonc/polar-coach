@@ -9,8 +9,8 @@
     --border: #262a38;
     --border2: #323748;
     --text: #f0f1f4;
-    --text2: #c0c3d4;
-    --text3: #8a8ea4;
+    --text2: #cccfde;
+    --text3: #969bb4;
     --green: #00d68f;
     --green-dim: rgba(0, 214, 143, 0.14);
     --yellow: #f5a623;
@@ -47,7 +47,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 /* Theme toggle */
 .theme-toggle { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; color: var(--text3); cursor: pointer; transition: all 0.2s; margin-left: 0.25rem; }
 .theme-toggle:hover { color: var(--text); }
-.icon-sun, .icon-moon, .icon-auto { display: none; }
+.icon-sun, .icon-moon { display: none; }
 
 /* Landing */
 .landing { min-height: calc(100vh - 48px); display: flex; align-items: center; justify-content: center; position: relative; }

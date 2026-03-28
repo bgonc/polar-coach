@@ -29,7 +29,6 @@
             <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
                 <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                <svg class="icon-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20V2z" fill="currentColor" opacity="0.3"/></svg>
             </button>
         </div>
     </nav>
@@ -40,32 +39,23 @@
     function applyTheme() {
         const saved = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        let isDark;
-        if (saved === 'dark') isDark = true;
-        else if (saved === 'light') isDark = false;
-        else isDark = prefersDark; // auto = follow system
+        const isDark = saved ? saved === 'dark' : prefersDark;
 
         document.documentElement.classList.toggle('light', !isDark);
-        // Update button icon visibility
-        document.querySelectorAll('.icon-sun, .icon-moon, .icon-auto').forEach(el => el.style.display = 'none');
-        const icon = saved === 'light' ? '.icon-moon' : saved === 'dark' ? '.icon-sun' : '.icon-auto';
-        document.querySelectorAll(icon).forEach(el => el.style.display = 'block');
+        // Show sun in dark mode (click to go light), moon in light mode (click to go dark)
+        document.querySelector('.icon-sun').style.display = isDark ? 'block' : 'none';
+        document.querySelector('.icon-moon').style.display = isDark ? 'none' : 'block';
     }
 
-    // Cycle: auto → light → dark → auto
     function toggleTheme() {
-        const saved = localStorage.getItem('theme');
-        let next;
-        if (!saved) next = 'light';
-        else if (saved === 'light') next = 'dark';
-        else { next = null; }
-
-        if (next) localStorage.setItem('theme', next);
-        else localStorage.removeItem('theme');
+        const isCurrentlyLight = document.documentElement.classList.contains('light');
+        localStorage.setItem('theme', isCurrentlyLight ? 'dark' : 'light');
         applyTheme();
     }
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (!localStorage.getItem('theme')) applyTheme();
+    });
     applyTheme();
 
     // Weather in navbar
