@@ -348,7 +348,7 @@ let calDate = new Date(currentDate + 'T12:00:00');
 function setDate(ds) {
     currentDate = ds;
     document.getElementById('datePicker').value = ds;
-    document.getElementById('dateLabel').textContent = ds === today ? 'Today' : ds;
+    document.getElementById('dateLabel').textContent = ds === today ? 'Today' : ds.slice(8)+'.'+ds.slice(5,7)+'.'+ds.slice(0,4);
     document.getElementById('nextBtn').classList.toggle('disabled', ds === today);
     document.getElementById('todayBtn').style.display = ds === today ? 'none' : '';
     const exDate = document.getElementById('exDate');

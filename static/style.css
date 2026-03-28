@@ -45,8 +45,8 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .weather-set:hover { color: var(--text2); background: var(--surface); }
 
 /* Theme toggle */
-.theme-toggle { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--text2); cursor: pointer; transition: all 0.2s; margin-left: 0.5rem; }
-.theme-toggle:hover { color: var(--text); background: var(--surface); }
+.theme-toggle { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; color: var(--text3); cursor: pointer; transition: all 0.2s; margin-left: 0.25rem; }
+.theme-toggle:hover { color: var(--text); }
 .icon-sun, .icon-moon, .icon-auto { display: none; }
 
 /* Landing */
@@ -70,15 +70,15 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
 /* Date Nav */
 .date-nav { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 0 0.5rem; }
-.date-arrow { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); text-decoration: none; cursor: pointer; transition: all 0.15s; }
+.date-arrow { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; color: var(--text3); text-decoration: none; cursor: pointer; transition: all 0.15s; }
 .date-arrow:hover:not(.disabled) { background: var(--surface2); color: var(--text); }
 .date-arrow.disabled { opacity: 0.25; cursor: default; }
 .date-center { position: relative; }
 .date-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 1rem; }
-.date-label { font-size: 0.82rem; font-weight: 700; color: var(--text); padding: 0.35rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: block; cursor: pointer; }
-.today-btn:hover { color: var(--accent) !important; border-color: var(--accent) !important; }
-.sync-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); cursor: pointer; transition: all 0.15s; margin-left: 0.5rem; }
-.sync-btn:hover { background: var(--surface2); color: var(--text); }
+.date-label { font-size: 0.82rem; font-weight: 700; color: var(--text); padding: 0.35rem 0.5rem; background: none; border: none; display: block; cursor: pointer; }
+.today-btn:hover { color: var(--accent) !important; }
+.sync-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; color: var(--text3); cursor: pointer; transition: all 0.15s; margin-left: 0.25rem; }
+.sync-btn:hover { color: var(--text); }
 
 /* Toast */
 .toast { max-width: 1400px; margin: 0 auto 0.5rem; padding: 0 1rem; }
@@ -199,8 +199,8 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .card-calendar { padding: 0.75rem; }
 .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
 .cal-month { font-size: 0.78rem; font-weight: 700; }
-.cal-nav { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; color: var(--text2); cursor: pointer; transition: all 0.15s; }
-.cal-nav:hover { background: var(--surface2); color: var(--text); }
+.cal-nav { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 6px; color: var(--text3); cursor: pointer; transition: all 0.15s; }
+.cal-nav:hover { color: var(--text); background: var(--surface2); }
 .cal-days, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
 .cal-days span { font-size: 0.6rem; font-weight: 600; color: var(--text3); padding: 0.2rem 0; }
 .cal-day, .cal-empty { font-size: 0.7rem; padding: 0.3rem 0; border-radius: 6px; text-decoration: none; color: var(--text2); transition: all 0.12s; position: relative; }
