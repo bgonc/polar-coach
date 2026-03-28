@@ -214,7 +214,7 @@
                     <div class="rex" onclick="this.classList.toggle('expanded')">
                         <div class="rex-row">
                             <span class="rex-icon">{% if 'unning' in e.sport %}&#127939;{% elif 'ym' in e.sport or 'trength' in e.sport %}&#127947;{% elif 'IIT' in e.sport %}&#9889;{% elif 'alking' in e.sport %}&#128694;{% elif 'oga' in e.sport %}&#129495;{% else %}&#127941;{% endif %}</span>
-                            <span class="rex-date">{{ e.date[5:] }}</span>
+                            <span class="rex-date">{{ e.date[8:] }}.{{ e.date[5:7] }}</span>
                             <span class="rex-sport">{{ e.sport }}</span>
                             {% if e.training_benefit %}<span class="benefit-tag benefit-{{ e.training_benefit|lower|replace(' ', '-') }}">{{ e.training_benefit }}</span>{% endif %}
                             <span class="rex-dur">{{ e.duration }}</span>
