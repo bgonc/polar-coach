@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Session Detail — Polar AI Coach{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('dashboard') }}" class="back-link">&larr; Back to Dashboard</a>
+
+<h1>Training Session</h1>
+
+<section class="card">
+    <div class="session-detail">
+        {% for key, value in exercise.items() %}
+        <div class="detail-row">
+            <span class="detail-label">{{ key }}</span>
+            <span class="detail-value">
+                {% if value is mapping %}
+                    <pre>{{ value | tojson(indent=2) }}</pre>
+                {% elif value is iterable and value is not string %}
+                    <pre>{{ value | tojson(indent=2) }}</pre>
+                {% else %}
+                    {{ value }}
+                {% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

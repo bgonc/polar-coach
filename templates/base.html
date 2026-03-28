@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Polar AI Coach{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <span class="logo-icon">P</span>
+            <span>POLAR AI COACH</span>
+        </a>
+        <div class="nav-links">
+            {% if session.get('access_token') %}
+                <span class="nav-weather" id="navWeather"></span>
+                <a href="{{ url_for('profile_page') }}" class="nav-link" title="Profile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="nav-link">Connect</a>
+            {% endif %}
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg class="icon-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20V2z" fill="currentColor" opacity="0.3"/></svg>
+            </button>
+        </div>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+    function applyTheme() {
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let isDark;
+        if (saved === 'dark') isDark = true;
+        else if (saved === 'light') isDark = false;
+        else isDark = prefersDark; // auto = follow system
+
+        document.documentElement.classList.toggle('light', !isDark);
+        // Update button icon visibility
+        document.querySelectorAll('.icon-sun, .icon-moon, .icon-auto').forEach(el => el.style.display = 'none');
+        const icon = saved === 'light' ? '.icon-moon' : saved === 'dark' ? '.icon-sun' : '.icon-auto';
+        document.querySelectorAll(icon).forEach(el => el.style.display = 'block');
+    }
+
+    // Cycle: auto → light → dark → auto
+    function toggleTheme() {
+        const saved = localStorage.getItem('theme');
+        let next;
+        if (!saved) next = 'light';
+        else if (saved === 'light') next = 'dark';
+        else { next = null; }
+
+        if (next) localStorage.setItem('theme', next);
+        else localStorage.removeItem('theme');
+        applyTheme();
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+    applyTheme();
+
+    // Weather in navbar
+    async function loadWeather() {
+        const el = document.getElementById('navWeather');
+        if (!el) return;
+        try {
+            const r = await fetch('/api/weather');
+            const w = await r.json();
+            if (!w) { el.innerHTML = '<span class="weather-set" onclick="setLocation()">Set location</span>'; return; }
+            const icons = {sun:'&#9728;','cloud-sun':'&#9925;',cloud:'&#9729;','cloud-rain':'&#127783;',snowflake:'&#10052;',bolt:'&#9889;',smog:'&#127787;'};
+            const icon = icons[w.emoji] || '&#9729;';
+            el.innerHTML = `<span class="weather-info" onclick="setLocation()" title="Click to change location">${icon} ${w.temp_c}° <span class="weather-city">${w.city}</span></span>`;
+        } catch(e) {
+            el.innerHTML = '<span class="weather-set" onclick="setLocation()">Set location</span>';
+        }
+    }
+
+    function setLocation() {
+        const loc = prompt('Enter location (city name, postal code, or city+country).\nExamples: Vantaa, 01510, Helsinki+Finland\n\nLeave empty for auto-detect:');
+        if (loc === null) return;
+        fetch('/api/location', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({location: loc.trim()}),
+        }).then(() => loadWeather());
+    }
+
+    loadWeather();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

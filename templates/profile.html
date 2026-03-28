@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Profile — Polar AI Coach{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-header">
+        <a href="{{ url_for('dashboard') }}" class="back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+        </a>
+        <h1>Athlete Profile</h1>
+        <p class="profile-sub">This info helps the AI coach give personalized advice. Data from your Polar Flow settings can be entered here.</p>
+    </div>
+
+    <form id="profileForm" class="profile-form" onsubmit="saveProfile(event)">
+        <!-- Personal -->
+        <div class="pf-section">Personal</div>
+        <div class="pf-row">
+            <div class="pf-group">
+                <label>Name</label>
+                <input type="text" name="name" value="{{ profile.name }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>Date of Birth</label>
+                <input type="date" name="date_of_birth" value="{{ profile.date_of_birth }}" class="pf-input">
+            </div>
+        </div>
+        <div class="pf-row">
+            <div class="pf-group">
+                <label>Gender</label>
+                <select name="gender" class="pf-input">
+                    <option {% if profile.gender == 'Male' %}selected{% endif %}>Male</option>
+                    <option {% if profile.gender == 'Female' %}selected{% endif %}>Female</option>
+                    <option {% if profile.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="pf-group">
+                <label>Height (cm)</label>
+                <input type="text" name="height_cm" value="{{ profile.height_cm }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>Weight (kg)</label>
+                <input type="text" name="weight_kg" value="{{ profile.weight_kg }}" class="pf-input">
+            </div>
+        </div>
+        <div class="pf-row">
+            <div class="pf-group">
+                <label>Location</label>
+                <input type="text" name="location" value="{{ profile.location }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>BMI</label>
+                <input type="text" name="bmi" value="{{ profile.bmi }}" class="pf-input" readonly style="opacity:0.7">
+            </div>
+        </div>
+
+        <!-- Lifestyle -->
+        <div class="pf-section">Lifestyle & Schedule</div>
+        <div class="pf-group">
+            <label>Work Schedule</label>
+            <input type="text" name="work_schedule" value="{{ profile.work_schedule }}" class="pf-input">
+        </div>
+        <div class="pf-group">
+            <label>Lifestyle</label>
+            <textarea name="lifestyle" class="pf-input pf-textarea">{{ profile.lifestyle }}</textarea>
+        </div>
+        <div class="pf-row">
+            <div class="pf-group">
+                <label>Activity Level</label>
+                <select name="activity_level" class="pf-input">
+                    <option {% if 'Level 1' in profile.activity_level %}selected{% endif %}>Level 1 (mostly sedentary)</option>
+                    <option {% if 'Level 2' in profile.activity_level %}selected{% endif %}>Level 2 (moderately active)</option>
+                    <option {% if 'Level 3' in profile.activity_level %}selected{% endif %}>Level 3 (very active)</option>
+                </select>
+            </div>
+            <div class="pf-group">
+                <label>Sleep Goal</label>
+                <input type="text" name="sleep_goal" value="{{ profile.sleep_goal }}" class="pf-input">
+            </div>
+        </div>
+
+        <!-- Training -->
+        <div class="pf-section">Training</div>
+        <div class="pf-row">
+            <div class="pf-group">
+                <label>Sports</label>
+                <input type="text" name="sports" value="{{ profile.sports }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>Training Background</label>
+                <select name="training_background" class="pf-input">
+                    <option {% if 'Occasional' in profile.training_background %}selected{% endif %}>Occasional (0-1h/week)</option>
+                    <option {% if 'Regular' in profile.training_background %}selected{% endif %}>Regular (1-3h/week)</option>
+                    <option {% if 'Frequent' in profile.training_background %}selected{% endif %}>Frequent (3-5h/week)</option>
+                    <option {% if 'Heavy' in profile.training_background %}selected{% endif %}>Heavy (5-8h/week)</option>
+                    <option {% if 'Semi-pro' in profile.training_background %}selected{% endif %}>Semi-pro (8-12h/week)</option>
+                </select>
+            </div>
+        </div>
+        <div class="pf-group">
+            <label>Equipment</label>
+            <input type="text" name="equipment" value="{{ profile.equipment }}" class="pf-input">
+        </div>
+        <div class="pf-group">
+            <label>Goals</label>
+            <textarea name="goals" class="pf-input pf-textarea">{{ profile.goals }}</textarea>
+        </div>
+
+        <!-- Physiology (from Polar Flow) -->
+        <div class="pf-section">Physiology <span class="pf-hint">from Polar Flow settings</span></div>
+        <div class="pf-row">
+            <div class="pf-group">
+                <label>VO2max</label>
+                <input type="text" name="vo2max" value="{{ profile.vo2max }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>Max HR (bpm)</label>
+                <input type="text" name="max_hr" value="{{ profile.max_hr }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>Resting HR (bpm)</label>
+                <input type="text" name="resting_hr" value="{{ profile.resting_hr }}" class="pf-input">
+            </div>
+        </div>
+        <div class="pf-row">
+            <div class="pf-group">
+                <label>Aerobic Threshold (bpm)</label>
+                <input type="text" name="aerobic_threshold" value="{{ profile.aerobic_threshold }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>Anaerobic Threshold (bpm)</label>
+                <input type="text" name="anaerobic_threshold" value="{{ profile.anaerobic_threshold }}" class="pf-input">
+            </div>
+        </div>
+        <div class="pf-row">
+            <div class="pf-group">
+                <label>MAS (min/km)</label>
+                <input type="text" name="mas_pace" value="{{ profile.mas_pace }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>MAP (Watts)</label>
+                <input type="text" name="map_watts" value="{{ profile.map_watts }}" class="pf-input">
+            </div>
+            <div class="pf-group">
+                <label>FTP (Watts)</label>
+                <input type="text" name="ftp_watts" value="{{ profile.ftp_watts }}" class="pf-input">
+            </div>
+        </div>
+
+        <!-- HR Zones -->
+        <div class="pf-section">Heart Rate Zones</div>
+        <div class="pf-row">
+            <div class="pf-group"><label>Zone 1</label><input type="text" name="hr_zone_1" value="{{ profile.hr_zone_1 }}" class="pf-input pf-zone z1"></div>
+            <div class="pf-group"><label>Zone 2</label><input type="text" name="hr_zone_2" value="{{ profile.hr_zone_2 }}" class="pf-input pf-zone z2"></div>
+        </div>
+        <div class="pf-row">
+            <div class="pf-group"><label>Zone 3</label><input type="text" name="hr_zone_3" value="{{ profile.hr_zone_3 }}" class="pf-input pf-zone z3"></div>
+            <div class="pf-group"><label>Zone 4</label><input type="text" name="hr_zone_4" value="{{ profile.hr_zone_4 }}" class="pf-input pf-zone z4"></div>
+        </div>
+        <div class="pf-row">
+            <div class="pf-group"><label>Zone 5</label><input type="text" name="hr_zone_5" value="{{ profile.hr_zone_5 }}" class="pf-input pf-zone z5"></div>
+            <div class="pf-group"></div>
+        </div>
+
+        <!-- Other -->
+        <div class="pf-section">Other</div>
+        <div class="pf-group">
+            <label>Injuries / Limitations</label>
+            <textarea name="injuries" class="pf-input pf-textarea" placeholder="Any current injuries, chronic issues...">{{ profile.injuries }}</textarea>
+        </div>
+        <div class="pf-group">
+            <label>Notes for AI Coach</label>
+            <textarea name="notes" class="pf-input pf-textarea" placeholder="Diet, preferences, things the coach should know...">{{ profile.notes }}</textarea>
+        </div>
+
+        <div class="pf-actions">
+            <button type="submit" class="pf-save">Save Profile</button>
+            <span id="saveStatus" class="pf-status"></span>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveProfile(e) {
+    e.preventDefault();
+    const form = document.getElementById('profileForm');
+    const data = {};
+    new FormData(form).forEach((v, k) => data[k] = v);
+
+    // Auto-calc BMI
+    const h = parseFloat(data.height_cm), w = parseFloat(data.weight_kg);
+    if (h > 0 && w > 0) data.bmi = (w / ((h/100) ** 2)).toFixed(1);
+
+    const status = document.getElementById('saveStatus');
+    status.textContent = 'Saving...';
+    status.className = 'pf-status';
+
+    try {
+        await fetch('/api/profile', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data),
+        });
+        status.textContent = 'Saved!';
+        status.className = 'pf-status saved';
+        setTimeout(() => status.textContent = '', 2000);
+    } catch (err) {
+        status.textContent = 'Error saving';
+        status.className = 'pf-status error';
+    }
+}
+</script>
+{% endblock %}

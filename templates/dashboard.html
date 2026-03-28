@@ -1,0 +1,1144 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Polar AI Coach{% endblock %}
+
+{% block content %}
+<div id="loadingOverlay" class="loading-overlay hidden"><div class="loading-spinner"></div></div>
+
+<!-- Date Navigation -->
+<div class="date-nav">
+    <button class="date-arrow" onclick="navDate(-1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="date-center">
+        <input type="date" id="datePicker" class="date-input">
+        <span id="dateLabel" class="date-label"></span>
+    </div>
+    <button id="todayBtn" class="date-arrow today-btn" onclick="setDate(today)" title="Go to today" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="13" r="2" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <button id="nextBtn" class="date-arrow" onclick="navDate(1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="sync-btn" onclick="syncData()" title="Sync from Polar">
+        <svg id="syncIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </button>
+</div>
+
+{% if errors %}
+<div class="toast" onclick="this.remove()">{% for e in errors %}<span>{{ e }}</span>{% endfor %}</div>
+{% endif %}
+
+<div class="three-col">
+    <!-- ========== LEFT: Status ========== -->
+    <div class="col col-left">
+        <div class="col-header">Status</div>
+
+        <!-- Score Cards -->
+        <div class="score-cards">
+            <!-- Readiness (hero card) -->
+            <div class="score-card readiness-card" onclick="this.classList.toggle('expanded')">
+                <div class="score-top">
+                    <div class="readiness-ring">
+                        <svg viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--border2)" stroke-width="5"/>
+                            <circle id="readinessRing" cx="40" cy="40" r="34" fill="none" stroke-width="5" stroke-linecap="round"
+                                style="stroke-dasharray: 0 214; transform: rotate(-90deg); transform-origin: center;"/>
+                        </svg>
+                        <span id="readinessVal" class="readiness-val">-</span>
+                    </div>
+                    <div class="score-main">
+                        <span class="score-name">Readiness</span>
+                        <span id="readinessPill" class="pill pill-dim">-</span>
+                    </div>
+                </div>
+                <div class="score-detail" id="readinessDetail">
+                    <div class="detail-row"><span>Score</span><span id="dReadiness">-</span></div>
+                    <div class="detail-row"><span>Sleep contribution</span><span id="dReadSleep">-</span></div>
+                    <div class="detail-row"><span>Recovery contribution</span><span id="dReadRecov">-</span></div>
+                    <div class="detail-row"><span>Stress contribution</span><span id="dReadStress">-</span></div>
+                </div>
+            </div>
+
+            <div class="score-card" onclick="this.classList.toggle('expanded')">
+                <div class="score-top">
+                    <div class="score-icon sleep-bg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </div>
+                    <div class="score-main">
+                        <span class="score-name">Sleep</span>
+                        <span id="sleepPill" class="pill">-</span>
+                    </div>
+                    <span id="sleepMini" class="score-mini">-</span>
+                </div>
+                <div class="score-detail" id="sleepDetail">
+                    <div class="detail-row"><span>Score</span><span id="dSleepScore">-</span></div>
+                    <div class="detail-row"><span>Duration</span><span id="dSleepDur">-</span></div>
+                    <div class="detail-row"><span>Light</span><span id="dSleepLight">-</span></div>
+                    <div class="detail-row"><span>Deep</span><span id="dSleepDeep">-</span></div>
+                    <div class="detail-row"><span>REM</span><span id="dSleepRem">-</span></div>
+                </div>
+            </div>
+
+            <div class="score-card" onclick="this.classList.toggle('expanded')">
+                <div class="score-top">
+                    <div class="score-icon recovery-bg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                    <div class="score-main">
+                        <span class="score-name">Recovery</span>
+                        <span id="recoveryPill" class="pill">-</span>
+                    </div>
+                    <span id="recoveryMini" class="score-mini">-</span>
+                </div>
+                <div class="score-detail" id="recoveryDetail">
+                    <div class="detail-row"><span>ANS Charge</span><span id="dAns">-</span></div>
+                    <div class="detail-row"><span>HRV</span><span id="dHrv">-</span></div>
+                    <div class="detail-row"><span>Resting HR</span><span id="dRhr">-</span></div>
+                    <div class="detail-row"><span>Breathing</span><span id="dBreath">-</span></div>
+                </div>
+            </div>
+
+            <div class="score-card" onclick="this.classList.toggle('expanded')">
+                <div class="score-top">
+                    <div class="score-icon stress-bg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <div class="score-main">
+                        <span class="score-name">Stress</span>
+                        <span id="stressPill" class="pill">-</span>
+                    </div>
+                    <span id="stressMini" class="score-mini">-</span>
+                </div>
+                <div class="score-detail score-detail-stress" id="stressDetail">
+                    <div class="detail-row"><span>Overall</span><span id="dStressTotal">-</span></div>
+                    <div class="detail-row"><span>ANS component</span><span id="dStressAns">-</span></div>
+                    <div class="detail-row"><span>HRV component</span><span id="dStressHrv">-</span></div>
+                    <div class="detail-row"><span>HR component</span><span id="dStressHr">-</span></div>
+                    <div class="stress-chart-wrap">
+                        <div class="stress-chart-label">Stress proxy (HR vs resting) &amp; Night HRV</div>
+                        <canvas id="stressCanvas" width="300" height="90"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly / Monthly Summary -->
+        {% if summaries.week_count > 0 %}
+        <div class="card card-summary">
+            <div class="card-label">Averages</div>
+            <div class="summary-grid">
+                <div class="sum-head"><span></span><span>7 days</span><span></span><span>Month</span></div>
+                {% macro sum_row(label, key, unit='', fmt='%.0f') %}
+                {% set w = summaries.week[key] %}
+                {% set m = summaries.month[key] %}
+                {% set t = summaries.trends[key] %}
+                <div class="sum-row">
+                    <span class="sum-label">{{ label }}</span>
+                    <span class="sum-val">{{ (fmt % w) if w is not none else '-' }}{{ unit }}</span>
+                    <span class="trend {{ t }}">{% if t == 'improving' %}▲{% elif t == 'declining' %}▼{% else %}—{% endif %}</span>
+                    <span class="sum-val dim">{{ (fmt % m) if m is not none else '-' }}{{ unit }}</span>
+                </div>
+                {% endmacro %}
+                {{ sum_row('Sleep Score', 'sleep_score') }}
+                {{ sum_row('Sleep', 'sleep_hours', 'h', '%.1f') }}
+                {{ sum_row('ANS Charge', 'ans', '', '%.1f') }}
+                {{ sum_row('HRV', 'hrv', 'ms') }}
+                {{ sum_row('Resting HR', 'rhr', 'bpm') }}
+                {{ sum_row('Stress', 'stress') }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Insights -->
+        {% if coaching.warnings or coaching.recommendations or coaching.info %}
+        <div class="card">
+            <div class="card-label">Insights</div>
+            {% for w in coaching.warnings %}<div class="insight-item warn">{{ w }}</div>{% endfor %}
+            {% for r in coaching.recommendations %}<div class="insight-item ok">{{ r }}</div>{% endfor %}
+            {% for i in coaching.info %}<div class="insight-item info">{{ i }}</div>{% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ========== CENTER: Training ========== -->
+    <div class="col col-center">
+        <div class="col-header">Training</div>
+
+        <div class="card card-calendar">
+            <div class="cal-header">
+                <button class="cal-nav" onclick="calNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg></button>
+                <span id="calMonth" class="cal-month"></span>
+                <button class="cal-nav" onclick="calNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+            <div class="cal-days"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+            <div id="calGrid" class="cal-grid"></div>
+            <div id="planDay" class="plan-day" style="display:none"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-label">Log Exercise <button class="toggle-form-btn" onclick="toggleForm()">+</button></div>
+            <div id="addExForm" class="add-ex-form" style="display:none">
+                <div class="form-row">
+                    <input type="date" id="exDate" class="form-input">
+                    <select id="exSport" class="form-input">
+                        <option>Running</option><option>Home Gym</option><option>Strength</option>
+                        <option>HIIT</option><option>Walking</option><option>Swimming</option>
+                        <option>Yoga</option><option>Other</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <input type="number" id="exDuration" placeholder="Duration (min)" class="form-input" min="1">
+                    <input type="number" id="exDistance" placeholder="Distance (km)" class="form-input" min="0" step="0.1">
+                </div>
+                <div class="form-row">
+                    <input type="number" id="exCalories" placeholder="Calories" class="form-input" min="0">
+                    <input type="number" id="exHR" placeholder="Avg HR" class="form-input" min="0">
+                </div>
+                <button class="btn-log" onclick="logExercise()">Log Session</button>
+            </div>
+        </div>
+
+        {% if training_summary.week.sessions > 0 or training_summary.month.sessions > 0 %}
+        <div class="card card-training-sum">
+            <div class="card-label">Training Summary</div>
+            <div class="training-sum-grid">
+                <div class="ts-head"><span></span><span>7 days</span><span>30 days</span></div>
+                <div class="ts-row">
+                    <span>Sessions</span>
+                    <span class="ts-val">{{ training_summary.week.sessions }}</span>
+                    <span class="ts-val dim">{{ training_summary.month.sessions }}</span>
+                </div>
+                <div class="ts-row">
+                    <span>Duration</span>
+                    <span class="ts-val">{{ training_summary.week.duration_min // 60 }}h{{ training_summary.week.duration_min % 60 }}m</span>
+                    <span class="ts-val dim">{{ training_summary.month.duration_min // 60 }}h{{ training_summary.month.duration_min % 60 }}m</span>
+                </div>
+                {% if training_summary.week.distance_km > 0 or training_summary.month.distance_km > 0 %}
+                <div class="ts-row">
+                    <span>Distance</span>
+                    <span class="ts-val">{{ "%.1f"|format(training_summary.week.distance_km) }}km</span>
+                    <span class="ts-val dim">{{ "%.1f"|format(training_summary.month.distance_km) }}km</span>
+                </div>
+                {% endif %}
+                <div class="ts-row">
+                    <span>Calories</span>
+                    <span class="ts-val">{{ training_summary.week.calories }}</span>
+                    <span class="ts-val dim">{{ training_summary.month.calories }}</span>
+                </div>
+                {% if training_summary.month.sports %}
+                <div class="ts-sports">
+                    {% for sport, count in training_summary.month.sports.items() %}
+                    <span class="sport-chip">{{ sport }} <b>{{ count }}</b></span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-label">Sessions</div>
+            <div id="sessionList" class="session-list">
+                {% if exercises %}
+                {% for e in exercises %}
+                <div class="session-item" data-date="{{ e.date }}" id="session-{{ e.id }}">
+                    <div class="session-dot {% if e.source == 'manual' %}manual{% endif %}"></div>
+                    <div class="session-info">
+                        <div class="session-sport">{{ e.sport }}{% if e.source == 'manual' %} <span class="manual-tag">manual</span>{% endif %}</div>
+                        <div class="session-sub">{{ e.date }} &middot; {{ e.duration }}{% if e.distance_km %} &middot; {{ "%.1f"|format(e.distance_km) }}km{% endif %}{% if e.calories %} &middot; {{ e.calories }} cal{% endif %}</div>
+                    </div>
+                    {% if e.source == 'manual' %}
+                    <button class="session-del" onclick="deleteExercise('{{ e.id }}')" title="Delete">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state"><p>No sessions yet</p><span>Log manually or sync your watch</span></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Heart Rate -->
+        <div id="hrCard" class="card" style="display:none">
+            <div class="card-label">
+                Heart Rate
+                <div class="hr-toggles">
+                    <button class="hr-tog" id="togSleep" onclick="toggleHRZone('sleep')">Sleep</button>
+                </div>
+            </div>
+            <div class="hr-wrap">
+                <canvas id="hrCanvas" width="600" height="160"></canvas>
+                <canvas id="hrOverlay" class="hr-overlay"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== RIGHT: AI Coach ========== -->
+    <div class="col col-right">
+        <div class="col-header">AI Coach</div>
+        {% if has_ai %}
+
+        <!-- Training Plan Builder -->
+        <div class="card card-plan">
+            <div class="card-label">
+                Training Plan
+                <button class="toggle-form-btn" onclick="document.getElementById('planBuilder').style.display=document.getElementById('planBuilder').style.display==='none'?'block':'none'">+</button>
+            </div>
+            <div id="activePlan" class="active-plan"></div>
+            <div id="planBuilder" class="plan-builder" style="display:none">
+                <div class="plan-types">
+                    <button class="plan-type selected" onclick="selectPlanType(this,'general')">General Fitness</button>
+                    <button class="plan-type" onclick="selectPlanType(this,'running')">Running</button>
+                    <button class="plan-type" onclick="selectPlanType(this,'race')">Race Goal</button>
+                    <button class="plan-type" onclick="selectPlanType(this,'orienteering')">Orienteering</button>
+                </div>
+                <div id="raceFields" class="race-fields" style="display:none">
+                    <div class="form-row">
+                        <input type="text" id="raceDistance" placeholder="Distance (e.g. 10km, half marathon)" class="form-input">
+                        <input type="date" id="raceDate" placeholder="Race date" class="form-input">
+                    </div>
+                </div>
+                <input type="text" id="planNotes" placeholder="Any specific notes for the plan..." class="form-input" style="margin-bottom:0.4rem">
+                <button class="btn-create-plan" onclick="createPlan()">Create Plan</button>
+            </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="card card-ai-main">
+            <div class="ai-quick-actions">
+                <button class="chip chip-active" onclick="getAdvice()">Today</button>
+                <button class="chip" onclick="adjustPlan()">Adjust Plan</button>
+                <button class="chip" onclick="getAdvice('How is my recovery?')">Recovery</button>
+                <button class="chip" onclick="getAdvice('Show me upcoming orienteering events and suggest which to attend')">Events</button>
+                <button class="chip chip-danger" id="stopBtn" onclick="stopAI()" style="display:none">Stop</button>
+                <button class="chip chip-clear" onclick="clearChat()">Clear</button>
+            </div>
+            <div id="aiChat" class="ai-chat">
+                <div class="ai-welcome">
+                    <div class="ai-avatar">AI</div>
+                    <div class="ai-bubble">Hey! I'm your AI coach. Create a plan above or ask me anything.</div>
+                </div>
+            </div>
+            <div class="ai-input-row">
+                <input type="text" id="aiPrompt" placeholder="Ask your coach..." class="ai-input" onkeydown="if(event.key==='Enter')sendChat()">
+                <button class="ai-send" onclick="sendChat()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="card"><div class="ai-disabled"><p>AI Coach not configured</p><span>Add <code>OPENROUTER_API_KEY</code> to <code>.env</code></span></div></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const allSleep = {{ all_sleep_json | safe }};
+const allRecharge = {{ all_recharge_json | safe }};
+const dailyScores = {{ daily_scores_json | safe }};
+const exerciseDates = new Set({{ exercises | map(attribute='date') | list | tojson }});
+let planSchedule = {}; // date -> {type, title, duration}
+const today = new Date().toISOString().slice(0, 10);
+let currentDate = '{{ selected_date }}';
+let calDate = new Date(currentDate + 'T12:00:00');
+
+// ===== Date Navigation =====
+function setDate(ds) {
+    currentDate = ds;
+    document.getElementById('datePicker').value = ds;
+    document.getElementById('dateLabel').textContent = ds === today ? 'Today' : ds;
+    document.getElementById('nextBtn').classList.toggle('disabled', ds === today);
+    document.getElementById('todayBtn').style.display = ds === today ? 'none' : '';
+    const exDate = document.getElementById('exDate');
+    if (exDate) exDate.value = ds;
+    updateScoreCards(ds);
+    updatePlanDay(ds);
+    fetchHR(ds);
+    renderCalendar();
+    history.replaceState(null, '', ds === today ? '/dashboard' : '/dashboard/' + ds);
+}
+
+function navDate(dir) {
+    const d = new Date(currentDate + 'T12:00:00');
+    d.setDate(d.getDate() + dir);
+    const ds = d.toISOString().slice(0, 10);
+    if (ds > today) return;
+    setDate(ds);
+}
+
+document.getElementById('datePicker').addEventListener('change', function() { setDate(this.value); });
+
+// ===== Score Cards =====
+function updateScoreCards(ds) {
+    const sc = dailyScores[ds] || {};
+    const sl = sc.sleep;
+    const rc = sc.recovery;
+    const st = sc.stress;
+    const rd = sc.readiness;
+    const sleep = allSleep[ds];
+    const rech = allRecharge[ds];
+
+    // Readiness card
+    const ring = document.getElementById('readinessRing');
+    const rVal = document.getElementById('readinessVal');
+    if (rd) {
+        const pct = rd.score / 100;
+        ring.style.strokeDasharray = (pct * 214) + ' 214';
+        ring.style.stroke = `var(--${rd.color})`;
+        rVal.textContent = rd.score;
+        setPill('readinessPill', rd.label, rd.color);
+        document.getElementById('dReadiness').textContent = rd.score + '/100';
+        document.getElementById('dReadSleep').textContent = (sl ? sl.score : 0) + '/100';
+        document.getElementById('dReadRecov').textContent = rc ? rc.ans_charge.toFixed(1) : '-';
+        document.getElementById('dReadStress').textContent = st ? (100 - st.stress_score) + '/100' : '-';
+    } else {
+        ring.style.strokeDasharray = '0 214';
+        ring.style.stroke = 'var(--border2)';
+        rVal.textContent = '-';
+        setPill('readinessPill', 'No data', '');
+        ['dReadiness','dReadSleep','dReadRecov','dReadStress'].forEach(id => document.getElementById(id).textContent = '-');
+    }
+
+    // Sleep card
+    if (sl && sl.score > 0) {
+        setPill('sleepPill', sl.label, sl.color);
+        const totalMin = sleep ? Math.round((sleep.light_sleep + sleep.deep_sleep + sleep.rem_sleep) / 60) : 0;
+        document.getElementById('sleepMini').textContent = fmtMin(totalMin);
+        document.getElementById('dSleepScore').textContent = sl.score + '/100';
+        document.getElementById('dSleepDur').textContent = fmtMin(totalMin);
+        document.getElementById('dSleepLight').textContent = sleep ? fmtMin(Math.round(sleep.light_sleep/60)) : '-';
+        document.getElementById('dSleepDeep').textContent = sleep ? fmtMin(Math.round(sleep.deep_sleep/60)) : '-';
+        document.getElementById('dSleepRem').textContent = sleep ? fmtMin(Math.round(sleep.rem_sleep/60)) : '-';
+    } else {
+        setPill('sleepPill', 'No data', '');
+        document.getElementById('sleepMini').textContent = '-';
+        ['dSleepScore','dSleepDur','dSleepLight','dSleepDeep','dSleepRem'].forEach(id => document.getElementById(id).textContent = '-');
+    }
+
+    // Recovery card
+    if (rc) {
+        setPill('recoveryPill', rc.label, rc.color);
+        document.getElementById('recoveryMini').textContent = rc.ans_charge > 0 ? '+' + rc.ans_charge.toFixed(1) : rc.ans_charge.toFixed(1);
+        document.getElementById('dAns').textContent = rc.ans_charge.toFixed(1);
+        document.getElementById('dHrv').textContent = rech ? rech.heart_rate_variability_avg + ' ms' : '-';
+        document.getElementById('dRhr').textContent = rech ? rech.heart_rate_avg + ' bpm' : '-';
+        document.getElementById('dBreath').textContent = rech ? rech.breathing_rate_avg.toFixed(1) + '/min' : '-';
+    } else {
+        setPill('recoveryPill', 'No data', '');
+        document.getElementById('recoveryMini').textContent = '-';
+        ['dAns','dHrv','dRhr','dBreath'].forEach(id => document.getElementById(id).textContent = '-');
+    }
+
+    // Stress chart
+    drawStressChart(ds);
+
+    // Stress card
+    if (st) {
+        setPill('stressPill', st.label, st.color);
+        document.getElementById('stressMini').textContent = st.stress_score;
+        document.getElementById('dStressTotal').textContent = st.stress_score + '/100';
+        document.getElementById('dStressAns').textContent = st.ans_stress + '/100';
+        document.getElementById('dStressHrv').textContent = st.hrv_stress + '/100';
+        document.getElementById('dStressHr').textContent = st.hr_stress + '/100';
+    } else {
+        setPill('stressPill', 'No data', '');
+        document.getElementById('stressMini').textContent = '-';
+        ['dStressTotal','dStressAns','dStressHrv','dStressHr'].forEach(id => document.getElementById(id).textContent = '-');
+    }
+}
+
+function setPill(id, text, color) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'pill' + (color ? ' pill-' + color : ' pill-dim');
+}
+
+// ===== HR =====
+const hrCache = {};
+{% if hr_data and hr_data.heart_rate_samples %}hrCache['{{ selected_date }}'] = {{ hr_data.heart_rate_samples | tojson }};{% endif %}
+
+async function fetchHR(ds) {
+    if (hrCache[ds]) { drawHR(hrCache[ds]); drawStressChart(ds); return; }
+    document.getElementById('hrCard').style.display = 'none';
+    try {
+        const r = await fetch('/api/hr/' + ds);
+        const d = await r.json();
+        if (d && d.heart_rate_samples) { hrCache[ds] = d.heart_rate_samples; drawHR(d.heart_rate_samples); drawStressChart(ds); }
+    } catch(e) {}
+}
+
+function timeToMin(t) {
+    const p = t.split(':');
+    return parseInt(p[0]) * 60 + parseInt(p[1]);
+}
+
+function isoToMin(iso) {
+    // "2026-03-26T23:52:38.888+02:00" -> minutes since midnight
+    if (!iso) return null;
+    const m = iso.match(/T(\d{2}):(\d{2})/);
+    return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : null;
+}
+
+let hrZones = { sleep: false };
+let hrLastSamples = null;
+
+function toggleHRZone(zone) {
+    hrZones[zone] = !hrZones[zone];
+    document.getElementById('togSleep').classList.toggle('active', hrZones.sleep);
+    if (hrLastSamples) drawHR(hrLastSamples);
+}
+
+function drawHR(samples) {
+    hrLastSamples = samples;
+    const card = document.getElementById('hrCard'), canvas = document.getElementById('hrCanvas');
+    if (!samples || !samples.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const ctx = canvas.getContext('2d'), dpr = window.devicePixelRatio || 1, rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    const w = rect.width, h = rect.height, pad = { top: 15, right: 10, bottom: 30, left: 35 };
+    const plotW = w - pad.left - pad.right, plotH = h - pad.top - pad.bottom;
+
+    // Parse samples with time position (0-1440 minutes)
+    const points = [];
+    for (const s of samples) {
+        if (s.heart_rate > 0 && s.sample_time) {
+            points.push({ min: timeToMin(s.sample_time), hr: s.heart_rate });
+        }
+    }
+    if (!points.length) { card.style.display = 'none'; return; }
+
+    // Fixed 0-24h axis
+    const minTime = 0, maxTime = 1440;
+    const mn = Math.min(...points.map(p => p.hr)) - 3;
+    const mx = Math.max(...points.map(p => p.hr)) + 3;
+
+    function xPos(m) { return pad.left + (m / maxTime) * plotW; }
+    function yPos(v) { return pad.top + (1 - (v - mn) / (mx - mn)) * plotH; }
+
+    // Sleep zone overlay (behind everything)
+    if (hrZones.sleep) {
+        const sl = allSleep[currentDate];
+        if (sl && sl.sleep_start_time && sl.sleep_end_time) {
+            let startMin = isoToMin(sl.sleep_start_time);
+            let endMin = isoToMin(sl.sleep_end_time);
+
+            if (startMin !== null && endMin !== null) {
+                ctx.fillStyle = 'rgba(79, 140, 255, 0.1)';
+                if (startMin > endMin) {
+                    // Crosses midnight: 23:xx -> 07:xx
+                    const x1 = xPos(startMin), x2 = xPos(1440);
+                    ctx.fillRect(x1, pad.top, x2 - x1, plotH);
+                    const x3 = xPos(0), x4 = xPos(endMin);
+                    ctx.fillRect(x3, pad.top, x4 - x3, plotH);
+                } else {
+                    const x1 = xPos(startMin), x2 = xPos(endMin);
+                    ctx.fillRect(x1, pad.top, x2 - x1, plotH);
+                }
+
+                // Sleep label + time
+                ctx.fillStyle = 'rgba(79, 140, 255, 0.6)';
+                ctx.font = '9px Inter,sans-serif';
+                ctx.textAlign = 'left';
+                const lblX = startMin > endMin ? xPos(0) : xPos(startMin);
+                const sh = String(Math.floor(startMin/60)).padStart(2,'0') + ':' + String(startMin%60).padStart(2,'0');
+                const eh = String(Math.floor(endMin/60)).padStart(2,'0') + ':' + String(endMin%60).padStart(2,'0');
+                ctx.fillText('Sleep ' + sh + ' - ' + eh, lblX + 4, pad.top + 11);
+            }
+        }
+    }
+
+    // Gradient fill
+    const gr = ctx.createLinearGradient(0, pad.top, 0, h - pad.bottom);
+    gr.addColorStop(0, 'rgba(231,76,60,0.25)');
+    gr.addColorStop(1, 'rgba(231,76,60,0)');
+
+    // Draw fill — connect segments, but break when gap > 30 min
+    ctx.fillStyle = gr;
+    let segments = [[]];
+    for (let i = 0; i < points.length; i++) {
+        if (i > 0 && points[i].min - points[i-1].min > 30) {
+            segments.push([]);
+        }
+        segments[segments.length - 1].push(points[i]);
+    }
+
+    for (const seg of segments) {
+        if (seg.length < 2) continue;
+        ctx.beginPath();
+        ctx.moveTo(xPos(seg[0].min), h - pad.bottom);
+        for (const p of seg) ctx.lineTo(xPos(p.min), yPos(p.hr));
+        ctx.lineTo(xPos(seg[seg.length-1].min), h - pad.bottom);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // Draw line
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    for (const seg of segments) {
+        if (seg.length < 2) continue;
+        ctx.beginPath();
+        for (let i = 0; i < seg.length; i++) {
+            const x = xPos(seg[i].min), y = yPos(seg[i].hr);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    // Draw single-point segments as dots
+    for (const seg of segments) {
+        if (seg.length === 1) {
+            ctx.beginPath();
+            ctx.arc(xPos(seg[0].min), yPos(seg[0].hr), 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fill();
+        }
+    }
+
+    // Y axis
+    ctx.fillStyle = 'var(--text3)';
+    ctx.font = '10px Inter,sans-serif';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 3; i++) {
+        const v = Math.round(mn + (mx - mn) * (i / 3));
+        const y = h - pad.bottom - (i / 3) * plotH;
+        ctx.fillText(v, pad.left - 6, y + 3);
+        // Grid line
+        ctx.strokeStyle = 'rgba(128,128,128,0.1)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+    }
+
+    // X axis — grid every hour, labels every 2h
+    ctx.textAlign = 'center';
+    for (let hour = 0; hour <= 24; hour++) {
+        const x = xPos(hour * 60);
+
+        // Grid line every hour
+        if (hour > 0 && hour < 24) {
+            ctx.strokeStyle = hour % 2 === 0 ? 'rgba(128,128,128,0.12)' : 'rgba(128,128,128,0.05)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, h - pad.bottom); ctx.stroke();
+        }
+
+        // Label every 2 hours
+        if (hour % 2 === 0 && hour < 24) {
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text2').trim();
+            ctx.font = '9px Inter,sans-serif';
+            ctx.fillText(String(hour).padStart(2, '0') + ':00', x, h - 4);
+        }
+    }
+
+    // Store draw-time dimensions and data for hover
+    canvas._hr = { points, pad, w, h, maxTime: 1440, mn, mx };
+    canvas.onmousemove = hrHover;
+    canvas.onmouseleave = hrLeave;
+}
+
+let hrTooltip = null;
+
+function hrHover(e) {
+    const canvas = document.getElementById('hrCanvas');
+    const d = canvas._hr;
+    if (!d) return;
+
+    // offsetX/offsetY = mouse position relative to the canvas element itself
+    const mx = e.offsetX;
+    const my = e.offsetY;
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
+
+    // Padding in current CSS pixels (same ratios as draw time)
+    const padL = d.pad.left * cw / d.w;
+    const padR = d.pad.right * cw / d.w;
+    const padT = d.pad.top * ch / d.h;
+    const padB = d.pad.bottom * ch / d.h;
+    const plotW = cw - padL - padR;
+    const plotH = ch - padT - padB;
+
+    // Mouse X -> time in minutes (0-1440)
+    const mouseMin = ((mx - padL) / plotW) * 1440;
+    if (mouseMin < -10 || mouseMin > 1450) { hrLeave(); return; }
+
+    // Closest data point by time
+    let closest = null, best = Infinity;
+    for (const p of d.points) {
+        const dist = Math.abs(p.min - mouseMin);
+        if (dist < best) { best = dist; closest = p; }
+    }
+    if (!closest || best > 15) { hrLeave(); return; }
+
+    // Data point position in CSS pixels
+    const px = padL + (closest.min / 1440) * plotW;
+    const py = padT + (1 - (closest.hr - d.mn) / (d.mx - d.mn)) * plotH;
+
+    // -- Draw overlay crosshair + dot --
+    const ov = document.getElementById('hrOverlay');
+    const dpr = window.devicePixelRatio || 1;
+    ov.width = cw * dpr;
+    ov.height = ch * dpr;
+    const ctx = ov.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cw, ch);
+
+    const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim() || '#888';
+    ctx.strokeStyle = lineCol;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(px, padT); ctx.lineTo(px, ch - padB); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, py); ctx.lineTo(cw - padR, py); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.beginPath();
+    ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#e74c3c';
+    ctx.fill();
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // -- Tooltip --
+    if (!hrTooltip) {
+        hrTooltip = document.createElement('div');
+        hrTooltip.className = 'hr-tooltip';
+        document.body.appendChild(hrTooltip);
+    }
+
+    const hh = String(Math.floor(closest.min / 60)).padStart(2, '0');
+    const mm = String(closest.min % 60).padStart(2, '0');
+    hrTooltip.innerHTML = `<span class="hr-tt-time">${hh}:${mm}</span><span class="hr-tt-val">${closest.hr} bpm</span>`;
+    hrTooltip.style.display = 'flex';
+
+    // Position relative to canvas on page
+    const rect = canvas.getBoundingClientRect();
+    let tx = rect.left + px + 12 + window.scrollX;
+    let ty = rect.top + py - 35 + window.scrollY;
+    hrTooltip.style.left = tx + 'px';
+    hrTooltip.style.top = ty + 'px';
+    // Clamp
+    if (tx + hrTooltip.offsetWidth > window.innerWidth - 8) {
+        hrTooltip.style.left = (rect.left + px - hrTooltip.offsetWidth - 12 + window.scrollX) + 'px';
+    }
+}
+
+function hrLeave() {
+    if (hrTooltip) hrTooltip.style.display = 'none';
+    const ov = document.getElementById('hrOverlay');
+    if (ov) { const c = ov.getContext('2d'); c.clearRect(0, 0, ov.width, ov.height); }
+}
+
+// ===== Stress Chart =====
+function drawStressChart(ds) {
+    const canvas = document.getElementById('stressCanvas');
+    if (!canvas) return;
+    const rech = allRecharge[ds];
+    const hrSamples = hrCache[ds];
+
+    // Need at least HR data to draw
+    if (!hrSamples && !rech) return;
+
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    const w = rect.width, h = rect.height;
+    const pad = { top: 8, right: 5, bottom: 18, left: 25 };
+    const plotW = w - pad.left - pad.right;
+    const plotH = h - pad.top - pad.bottom;
+
+    // Derive stress proxy from HR: (hr - restingHR) / (maxHR - restingHR) * 100
+    // Use profile resting HR or fallback to 50
+    const restingHR = parseInt(document.getElementById('dRhr')?.textContent) || 50;
+
+    // Build stress timeline from HR data
+    let stressPoints = [];
+    if (hrSamples && hrSamples.length) {
+        for (const s of hrSamples) {
+            if (s.heart_rate > 0 && s.sample_time) {
+                const min = timeToMin(s.sample_time);
+                // Stress proxy: how far above resting (0=resting, 100=very high)
+                const stress = Math.max(0, Math.min(100, ((s.heart_rate - restingHR) / (restingHR * 0.8)) * 100));
+                stressPoints.push({ min, val: stress });
+            }
+        }
+    }
+
+    // Night HRV samples (lower HRV = higher stress)
+    let hrvPoints = [];
+    if (rech && rech.hrv_samples) {
+        const samples = rech.hrv_samples;
+        const hrvVals = Object.values(samples);
+        const hrvMax = Math.max(...hrvVals, 80);
+        for (const [time, val] of Object.entries(samples)) {
+            const parts = time.split(':');
+            const min = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            // Invert: low HRV = high stress
+            hrvPoints.push({ min, val: Math.max(0, (1 - val / hrvMax) * 100) });
+        }
+    }
+
+    if (!stressPoints.length && !hrvPoints.length) return;
+
+    function xPos(m) { return pad.left + (m / 1440) * plotW; }
+    function yPos(v) { return pad.top + (1 - v / 100) * plotH; }
+
+    // Background zones
+    const zones = [
+        { y: 0, h: 25, color: 'rgba(0,214,143,0.06)', label: 'Low' },
+        { y: 25, h: 25, color: 'rgba(79,140,255,0.04)', label: '' },
+        { y: 50, h: 25, color: 'rgba(245,166,35,0.06)', label: '' },
+        { y: 75, h: 25, color: 'rgba(255,71,87,0.06)', label: 'High' },
+    ];
+    for (const z of zones) {
+        ctx.fillStyle = z.color;
+        ctx.fillRect(pad.left, yPos(z.y + z.h), plotW, yPos(z.y) - yPos(z.y + z.h));
+    }
+
+    // Draw HRV stress line (night only, purple)
+    if (hrvPoints.length > 1) {
+        ctx.strokeStyle = 'rgba(168,85,247,0.5)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        hrvPoints.forEach((p, i) => {
+            const x = xPos(p.min), y = yPos(p.val);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+    }
+
+    // Draw HR stress line (all day, red/orange)
+    if (stressPoints.length > 1) {
+        // Break on gaps > 30min
+        let segs = [[]];
+        for (let i = 0; i < stressPoints.length; i++) {
+            if (i > 0 && stressPoints[i].min - stressPoints[i-1].min > 30) segs.push([]);
+            segs[segs.length - 1].push(stressPoints[i]);
+        }
+
+        for (const seg of segs) {
+            if (seg.length < 2) continue;
+            // Fill
+            const gr = ctx.createLinearGradient(0, pad.top, 0, h - pad.bottom);
+            gr.addColorStop(0, 'rgba(245,166,35,0.2)');
+            gr.addColorStop(1, 'rgba(245,166,35,0)');
+            ctx.fillStyle = gr;
+            ctx.beginPath();
+            ctx.moveTo(xPos(seg[0].min), h - pad.bottom);
+            seg.forEach(p => ctx.lineTo(xPos(p.min), yPos(p.val)));
+            ctx.lineTo(xPos(seg[seg.length-1].min), h - pad.bottom);
+            ctx.closePath();
+            ctx.fill();
+            // Line
+            ctx.strokeStyle = '#f5a623';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            seg.forEach((p, i) => {
+                const x = xPos(p.min), y = yPos(p.val);
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+    }
+
+    // X axis labels
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim();
+    ctx.font = '8px Inter,sans-serif';
+    ctx.textAlign = 'center';
+    for (let hour = 0; hour <= 24; hour += 6) {
+        ctx.fillText(String(hour).padStart(2, '0'), xPos(hour * 60), h - 3);
+    }
+
+    // Y axis
+    ctx.textAlign = 'right';
+    ctx.fillText('Low', pad.left - 3, yPos(10));
+    ctx.fillText('High', pad.left - 3, yPos(90));
+}
+
+// ===== Calendar =====
+function renderCalendar() {
+    const yr=calDate.getFullYear(), mo=calDate.getMonth();
+    document.getElementById('calMonth').textContent = calDate.toLocaleString('default',{month:'long',year:'numeric'});
+    let sd=new Date(yr,mo,1).getDay()-1; if(sd<0) sd=6;
+    const dim=new Date(yr,mo+1,0).getDate();
+    let h='';
+    for(let i=0;i<sd;i++) h+='<span class="cal-empty"></span>';
+    for(let d=1;d<=dim;d++){
+        const ds=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        let c='cal-day';
+        if(ds===currentDate) c+=' selected';
+        if(ds===today) c+=' today';
+        if(exerciseDates.has(ds)) c+=' has-session';
+        if(dailyScores[ds]) c+=' has-data';
+        if(planSchedule[ds]) c+=' has-plan';
+        const planTip = planSchedule[ds] ? ` title="${planSchedule[ds].title} (${planSchedule[ds].duration || ''})"` : '';
+        h+=`<a href="#" class="${c}"${planTip} onclick="event.preventDefault();setDate('${ds}')">${d}</a>`;
+    }
+    document.getElementById('calGrid').innerHTML=h;
+}
+function calNav(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCalendar(); }
+
+// Init
+setDate(currentDate);
+
+// ===== Exercise Logging =====
+function toggleForm() { const f=document.getElementById('addExForm'); f.style.display=f.style.display==='none'?'block':'none'; }
+async function logExercise() {
+    const data={
+        date:document.getElementById('exDate').value,
+        sport:document.getElementById('exSport').value,
+        duration_min:parseInt(document.getElementById('exDuration').value)||30,
+        distance_km:parseFloat(document.getElementById('exDistance').value)||0,
+        calories:parseInt(document.getElementById('exCalories').value)||0,
+        avg_hr:parseInt(document.getElementById('exHR').value)||0,
+    };
+    await fetch('/api/exercises',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    window.location.reload();
+}
+async function deleteExercise(id) { if(!confirm('Delete?'))return; await fetch('/api/exercises/'+id,{method:'DELETE'}); document.getElementById('session-'+id)?.remove(); }
+
+// ===== Sync =====
+async function syncData() { document.getElementById('syncIcon').style.animation='spin 1s linear infinite'; await fetch('/api/sync',{method:'POST'}); window.location.reload(); }
+
+// ===== AI =====
+const chatEl = document.getElementById('aiChat');
+let abortCtrl = null;
+
+function appendMsg(r, t) {
+    const d = document.createElement('div');
+    d.className = 'ai-msg ai-msg-' + r;
+    d.innerHTML = r === 'ai'
+        ? '<div class="ai-avatar">AI</div><div class="ai-bubble">' + fmtMd(t) + '</div>'
+        : '<div class="ai-bubble user-bubble">' + esc(t) + '</div>';
+    chatEl.appendChild(d);
+    chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function showTyping() {
+    document.getElementById('stopBtn').style.display = '';
+    const d = document.createElement('div');
+    d.className = 'ai-msg ai-msg-ai ai-typing';
+    d.innerHTML = '<div class="ai-avatar">AI</div><div class="ai-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+    chatEl.appendChild(d);
+    chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function hideTyping() {
+    document.getElementById('stopBtn').style.display = 'none';
+    chatEl.querySelector('.ai-typing')?.remove();
+}
+
+function stopAI() {
+    if (abortCtrl) { abortCtrl.abort(); abortCtrl = null; }
+    hideTyping();
+    appendMsg('ai', 'Stopped.');
+}
+
+function clearChat() {
+    if (abortCtrl) { abortCtrl.abort(); abortCtrl = null; }
+    hideTyping();
+    chatEl.innerHTML = '<div class="ai-welcome"><div class="ai-avatar">AI</div><div class="ai-bubble">Chat cleared. Ask me anything.</div></div>';
+}
+
+async function getAdvice(p) {
+    const t = p || "Give me today's training recommendation for running or home gym.";
+    appendMsg('user', t);
+    showTyping();
+    abortCtrl = new AbortController();
+    try {
+        const r = await fetch('/api/ai-advice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: t }),
+            signal: abortCtrl.signal,
+        });
+        const d = await r.json();
+        hideTyping();
+        appendMsg('ai', d.error ? 'Error: ' + d.error : d.advice);
+    } catch (e) {
+        hideTyping();
+        if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message);
+    }
+    abortCtrl = null;
+}
+
+async function getPlan() {
+    appendMsg('user', 'Create a weekly training plan (running + home gym).');
+    showTyping();
+    abortCtrl = new AbortController();
+    try {
+        const r = await fetch('/api/training-plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ goal: 'running endurance and home gym strength' }),
+            signal: abortCtrl.signal,
+        });
+        const d = await r.json();
+        hideTyping();
+        appendMsg('ai', d.error ? 'Error: ' + d.error : d.plan);
+    } catch (e) {
+        hideTyping();
+        if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message);
+    }
+    abortCtrl = null;
+}
+
+function sendChat() {
+    const i = document.getElementById('aiPrompt');
+    const t = i.value.trim();
+    if (!t) return;
+    i.value = '';
+    getAdvice(t);
+}
+function fmtMin(m) { const h = Math.floor(m/60), r = m % 60; return h > 0 ? h + 'h ' + r + 'm' : r + 'm'; }
+// ===== Training Plans =====
+let selectedPlanType = 'general';
+
+function selectPlanType(btn, type) {
+    selectedPlanType = type;
+    document.querySelectorAll('.plan-type').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('raceFields').style.display = type === 'race' ? '' : 'none';
+}
+
+async function createPlan() {
+    const data = {
+        type: selectedPlanType,
+        race_date: document.getElementById('raceDate')?.value || '',
+        race_distance: document.getElementById('raceDistance')?.value || '',
+        notes: document.getElementById('planNotes')?.value || '',
+    };
+
+    appendMsg('user', `Create a ${selectedPlanType} training plan` + (data.race_distance ? ` for ${data.race_distance} on ${data.race_date}` : ''));
+    showTyping();
+    abortCtrl = new AbortController();
+
+    try {
+        const r = await fetch('/api/create-plan', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data),
+            signal: abortCtrl.signal,
+        });
+        const d = await r.json();
+        hideTyping();
+        if (d.error) { appendMsg('ai', 'Error: ' + d.error); }
+        else {
+            appendMsg('ai', d.plan_text);
+            document.getElementById('planBuilder').style.display = 'none';
+            loadActivePlan();
+        }
+    } catch(e) {
+        hideTyping();
+        if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message);
+    }
+    abortCtrl = null;
+}
+
+async function adjustPlan(reason) {
+    const r2 = reason || '';
+    if (!reason) {
+        const input = prompt('Why do you need to adjust? (e.g. "feeling tired", "missed yesterday", or leave empty)');
+        if (input === null) return;
+    }
+    appendMsg('user', 'Adjust today\'s plan' + (r2 ? ': ' + r2 : ''));
+    showTyping();
+    abortCtrl = new AbortController();
+    try {
+        const r = await fetch('/api/adjust-plan', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({reason: r2}),
+            signal: abortCtrl.signal,
+        });
+        const d = await r.json();
+        hideTyping();
+        appendMsg('ai', d.error ? 'Error: ' + d.error : d.adjustment);
+    } catch(e) {
+        hideTyping();
+        if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message);
+    }
+    abortCtrl = null;
+}
+
+async function loadActivePlan() {
+    const el = document.getElementById('activePlan');
+    try {
+        const r = await fetch('/api/plan');
+        const plan = await r.json();
+        if (!plan) {
+            el.innerHTML = '<div class="no-plan">No active plan. Create one above.</div>';
+            planSchedule = {};
+            renderCalendar();
+            return;
+        }
+
+        // Populate calendar schedule
+        planSchedule = {};
+        if (plan.schedule && Array.isArray(plan.schedule)) {
+            for (const day of plan.schedule) {
+                if (day.date) planSchedule[day.date] = day;
+            }
+        }
+        renderCalendar();
+        const type = plan.type || 'general';
+        const labels = {general:'General Fitness', running:'Running', race:'Race Goal', orienteering:'Orienteering'};
+        const created = plan.created ? new Date(plan.created).toLocaleDateString() : '';
+        const planHtml = plan.plan_text ? fmtMd(esc(plan.plan_text)) : '';
+        el.innerHTML = `
+            <div class="plan-active-header" onclick="document.getElementById('planContent').classList.toggle('expanded')">
+                <span class="plan-badge">${labels[type] || type}</span>
+                ${plan.race_distance ? '<span class="plan-race">' + esc(plan.race_distance) + (plan.race_date ? ' — ' + plan.race_date : '') + '</span>' : ''}
+                <span class="plan-date">since ${created}</span>
+                <span class="plan-toggle">View</span>
+                <button class="plan-delete" onclick="event.stopPropagation();deletePlan()" title="Delete plan">&times;</button>
+            </div>
+            <div class="plan-content" id="planContent">
+                <div class="plan-text">${planHtml}</div>
+            </div>
+        `;
+    } catch(e) {
+        el.innerHTML = '';
+    }
+}
+
+async function deletePlan() {
+    if (!confirm('Delete the active training plan?')) return;
+    await fetch('/api/plan', {method:'DELETE'});
+    planSchedule = {};
+    renderCalendar();
+    loadActivePlan();
+}
+
+loadActivePlan();
+
+function updatePlanDay(ds) {
+    const el = document.getElementById('planDay');
+    const day = planSchedule[ds];
+    if (!day) { el.style.display = 'none'; return; }
+
+    const typeColors = {run:'var(--green)', strength:'var(--blue)', rest:'var(--text3)', orienteering:'var(--purple)'};
+    const color = typeColors[day.type] || 'var(--text2)';
+    el.style.display = '';
+    el.innerHTML = `
+        <span class="plan-day-dot" style="background:${color}"></span>
+        <div class="plan-day-info">
+            <span class="plan-day-title">${esc(day.title || day.type || '')}</span>
+            <span class="plan-day-dur">${esc(day.duration || '')}</span>
+        </div>
+    `;
+}
+
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtMd(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^### (.*$)/gm,'<h4>$1</h4>').replace(/^## (.*$)/gm,'<h3>$1</h3>').replace(/^- (.*$)/gm,'<li>$1</li>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');}
+</script>
+{% endblock %}
