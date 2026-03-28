@@ -31,7 +31,6 @@
 <div class="three-col">
     <!-- ========== LEFT: Status ========== -->
     <div class="col col-left">
-        <div class="col-header">Status</div>
 
         <!-- Score Cards -->
         <div class="score-cards">
@@ -168,10 +167,6 @@
 
     <!-- ========== CENTER: Training ========== -->
     <div class="col col-center">
-        <div class="col-header">Training
-            <button class="toggle-form-btn" onclick="toggleForm()" title="Log exercise" style="float:right">+</button>
-        </div>
-
         <!-- Log Exercise Form (hidden) -->
         <div id="addExForm" class="card add-ex-form" style="display:none">
             <div class="form-row">
@@ -271,13 +266,13 @@
                 <button class="cal-nav" onclick="calNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg></button>
                 <span id="calMonth" class="cal-month"></span>
                 <button class="cal-nav" onclick="calNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></button>
+                <button class="cal-nav" onclick="toggleForm()" title="Log exercise" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
             </div>
             <div class="cal-days"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
             <div id="calGrid" class="cal-grid"></div>
             <div id="planDay" class="plan-day" style="display:none"></div>
         </div>
 
-        <div class="col-header">AI Coach</div>
         {% if has_ai %}
 
         <!-- Training Plan Builder -->
