@@ -207,7 +207,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .cal-day:hover { background: var(--surface2); color: var(--text); }
 .cal-day.today { color: var(--text); font-weight: 700; }
 .cal-day.selected { background: var(--accent); color: white; font-weight: 700; }
-.cal-day.has-session::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--green); }
+.cal-day.has-session::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 4px var(--green); }
 .cal-day.selected.has-session::after { background: white; }
 .cal-day.has-data { color: var(--text); }
 
@@ -217,10 +217,11 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     position: absolute;
     top: 2px;
     right: 3px;
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: var(--yellow);
+    box-shadow: 0 0 4px var(--yellow);
 }
 .cal-day.selected.has-plan::before { background: white; }
 
@@ -241,6 +242,27 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .plan-day-info { display: flex; flex-direction: column; }
 .plan-day-title { font-size: 0.75rem; font-weight: 600; color: var(--text); }
 .plan-day-dur { font-size: 0.65rem; color: var(--text3); }
+
+/* Compact calendar */
+.card-calendar-compact { padding: 0.5rem; }
+.card-calendar-compact .cal-header { margin-bottom: 0.25rem; }
+.card-calendar-compact .cal-month { font-size: 0.72rem; }
+.card-calendar-compact .cal-days span { font-size: 0.55rem; padding: 0.1rem 0; }
+.card-calendar-compact .cal-grid { gap: 1px; }
+.card-calendar-compact .cal-day,
+.card-calendar-compact .cal-empty { font-size: 0.65rem; padding: 0.25rem 0; border-radius: 5px; }
+
+/* Recent exercises list */
+.recent-exercises { }
+.rex { cursor: pointer; border-radius: var(--r-sm); overflow: hidden; transition: background 0.15s; }
+.rex:hover { background: var(--surface2); }
+.rex-row { display: flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.3rem; font-size: 0.7rem; }
+.rex-icon { font-size: 0.75rem; width: 18px; text-align: center; flex-shrink: 0; }
+.rex-date { font-size: 0.6rem; color: var(--text3); font-weight: 600; min-width: 36px; }
+.rex-sport { font-weight: 600; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rex-dur { font-size: 0.62rem; color: var(--text2); flex-shrink: 0; }
+.rex-detail { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; padding: 0 0.5rem; background: var(--bg2); border-radius: 0 0 var(--r-sm) var(--r-sm); }
+.rex.expanded .rex-detail { max-height: 180px; padding: 0.35rem 0.5rem; }
 
 /* Training Summary */
 .card-training-sum { padding: 0.75rem; }

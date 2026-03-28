@@ -168,41 +168,93 @@
 
     <!-- ========== CENTER: Training ========== -->
     <div class="col col-center">
-        <div class="col-header">Training</div>
-
-        <div class="card card-calendar">
-            <div class="cal-header">
-                <button class="cal-nav" onclick="calNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg></button>
-                <span id="calMonth" class="cal-month"></span>
-                <button class="cal-nav" onclick="calNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></button>
-                <button class="cal-nav" onclick="toggleForm()" title="Log exercise" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
-            </div>
-            <div id="addExForm" class="add-ex-form" style="display:none">
-                <div class="form-row">
-                    <input type="date" id="exDate" class="form-input">
-                    <select id="exSport" class="form-input">
-                        <option>Running</option><option>Home Gym</option><option>Strength</option>
-                        <option>HIIT</option><option>Walking</option><option>Swimming</option>
-                        <option>Yoga</option><option>Other</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <input type="number" id="exDuration" placeholder="Min" class="form-input" min="1">
-                    <input type="number" id="exDistance" placeholder="Km" class="form-input" min="0" step="0.1">
-                    <input type="number" id="exCalories" placeholder="Cal" class="form-input" min="0">
-                </div>
-                <button class="btn-log" onclick="logExercise()">Log</button>
-            </div>
-            <div class="cal-days"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-            <div id="calGrid" class="cal-grid"></div>
-            <div id="planDay" class="plan-day" style="display:none"></div>
+        <div class="col-header">Training
+            <button class="toggle-form-btn" onclick="toggleForm()" title="Log exercise" style="float:right">+</button>
         </div>
 
-        <!-- Sessions (between calendar and training summary) -->
+        <!-- Log Exercise Form (hidden) -->
+        <div id="addExForm" class="card add-ex-form" style="display:none">
+            <div class="form-row">
+                <input type="date" id="exDate" class="form-input">
+                <select id="exSport" class="form-input">
+                    <option>Running</option><option>Home Gym</option><option>Strength</option>
+                    <option>HIIT</option><option>Walking</option><option>Swimming</option>
+                    <option>Yoga</option><option>Other</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <input type="number" id="exDuration" placeholder="Min" class="form-input" min="1">
+                <input type="number" id="exDistance" placeholder="Km" class="form-input" min="0" step="0.1">
+                <input type="number" id="exCalories" placeholder="Cal" class="form-input" min="0">
+            </div>
+            <button class="btn-log" onclick="logExercise()">Log</button>
+        </div>
+
+        <!-- Training Summary -->
+        <div class="card card-training-sum">
+            <div class="card-label">Training Summary</div>
+            <div class="training-sum-grid">
+                <div class="ts-head"><span></span><span>7 days</span><span>30 days</span></div>
+                <div class="ts-row"><span>Sessions</span><span class="ts-val">{{ training_summary.week.sessions }}</span><span class="ts-val dim">{{ training_summary.month.sessions }}</span></div>
+                <div class="ts-row"><span>Duration</span><span class="ts-val">{{ training_summary.week.duration_min // 60 }}h{{ training_summary.week.duration_min % 60 }}m</span><span class="ts-val dim">{{ training_summary.month.duration_min // 60 }}h{{ training_summary.month.duration_min % 60 }}m</span></div>
+                {% if training_summary.week.distance_km > 0 or training_summary.month.distance_km > 0 %}
+                <div class="ts-row"><span>Distance</span><span class="ts-val">{{ "%.1f"|format(training_summary.week.distance_km) }}km</span><span class="ts-val dim">{{ "%.1f"|format(training_summary.month.distance_km) }}km</span></div>
+                {% endif %}
+                <div class="ts-row"><span>Calories</span><span class="ts-val">{{ training_summary.week.calories }}</span><span class="ts-val dim">{{ training_summary.month.calories }}</span></div>
+
+                <!-- Week dots with nav -->
+                <div class="week-dots">
+                    <div class="week-dots-header">
+                        <button class="cal-nav cal-nav-sm" onclick="weekNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="15 18 9 12 15 6"/></svg></button>
+                        <span class="week-dots-label" id="weekLabel">This week</span>
+                        <button class="cal-nav cal-nav-sm" onclick="weekNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg></button>
+                    </div>
+                    <div class="week-dots-row" id="weekDots"></div>
+                </div>
+
+                <!-- Recent exercises (last 10) -->
+                <div class="recent-exercises">
+                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Recent</div>
+                    {% for e in exercises[:10] %}
+                    <div class="rex" onclick="this.classList.toggle('expanded')">
+                        <div class="rex-row">
+                            <span class="rex-icon">{% if 'unning' in e.sport %}&#127939;{% elif 'ym' in e.sport or 'trength' in e.sport %}&#127947;{% elif 'IIT' in e.sport %}&#9889;{% elif 'alking' in e.sport %}&#128694;{% elif 'oga' in e.sport %}&#129495;{% else %}&#127941;{% endif %}</span>
+                            <span class="rex-date">{{ e.date[5:] }}</span>
+                            <span class="rex-sport">{{ e.sport }}</span>
+                            {% if e.training_benefit %}<span class="benefit-tag benefit-{{ e.training_benefit|lower|replace(' ', '-') }}">{{ e.training_benefit }}</span>{% endif %}
+                            <span class="rex-dur">{{ e.duration }}</span>
+                        </div>
+                        <div class="rex-detail">
+                            {% if e.distance_km %}<div class="detail-row"><span>Distance</span><span>{{ "%.1f"|format(e.distance_km) }}km</span></div>{% endif %}
+                            {% if e.calories %}<div class="detail-row"><span>Calories</span><span>{{ e.calories }}</span></div>{% endif %}
+                            {% if e.avg_hr and e.avg_hr != '-' and e.avg_hr != 0 %}<div class="detail-row"><span>Avg HR</span><span>{{ e.avg_hr }} bpm</span></div>{% endif %}
+                            {% if e.source == 'manual' %}<div class="detail-row"><span>Source</span><span>Manual</span></div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not exercises %}<div class="empty-state" style="padding:0.5rem"><span>No sessions yet</span></div>{% endif %}
+                </div>
+
+                <!-- Volume chart, Pace, Race -->
+                <div class="volume-chart" id="volumeChartWrap" style="display:none">
+                    <span class="week-dots-label">Volume (8 weeks)</span>
+                    <canvas id="volumeCanvas" width="280" height="70"></canvas>
+                </div>
+                <div id="paceZonesCard" style="display:none">
+                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Pace Zones</div>
+                    <div id="paceZonesList"></div>
+                </div>
+                <div id="racePredCard" style="display:none">
+                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Race Predictions</div>
+                    <div id="raceGrid" class="race-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sessions (shown on day click) -->
         <div class="card" id="sessionsCard" style="display:none">
             <div class="card-label">Sessions <span id="sessionsDateLabel"></span></div>
             <div id="sessionList" class="session-list">
-                {% if exercises %}
                 {% for e in exercises %}
                 <div class="session-item" data-date="{{ e.date }}" id="session-{{ e.id }}">
                     <div class="session-dot {% if e.source == 'manual' %}manual{% endif %}"></div>
@@ -217,77 +269,13 @@
                     {% endif %}
                 </div>
                 {% endfor %}
-                {% endif %}
             </div>
         </div>
-
-        {% if training_summary.week.sessions > 0 or training_summary.month.sessions > 0 %}
-        <div class="card card-training-sum">
-            <div class="card-label">Training Summary</div>
-            <div class="training-sum-grid">
-                <div class="ts-head"><span></span><span>7 days</span><span>30 days</span></div>
-                <div class="ts-row">
-                    <span>Sessions</span>
-                    <span class="ts-val">{{ training_summary.week.sessions }}</span>
-                    <span class="ts-val dim">{{ training_summary.month.sessions }}</span>
-                </div>
-                <div class="ts-row">
-                    <span>Duration</span>
-                    <span class="ts-val">{{ training_summary.week.duration_min // 60 }}h{{ training_summary.week.duration_min % 60 }}m</span>
-                    <span class="ts-val dim">{{ training_summary.month.duration_min // 60 }}h{{ training_summary.month.duration_min % 60 }}m</span>
-                </div>
-                {% if training_summary.week.distance_km > 0 or training_summary.month.distance_km > 0 %}
-                <div class="ts-row">
-                    <span>Distance</span>
-                    <span class="ts-val">{{ "%.1f"|format(training_summary.week.distance_km) }}km</span>
-                    <span class="ts-val dim">{{ "%.1f"|format(training_summary.month.distance_km) }}km</span>
-                </div>
-                {% endif %}
-                <div class="ts-row">
-                    <span>Calories</span>
-                    <span class="ts-val">{{ training_summary.week.calories }}</span>
-                    <span class="ts-val dim">{{ training_summary.month.calories }}</span>
-                </div>
-                {% if training_summary.month.sports %}
-                <div class="ts-sports">
-                    {% for sport, count in training_summary.month.sports.items() %}
-                    <span class="sport-chip">{{ sport }} <b>{{ count }}</b></span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-                <div class="week-dots">
-                    <div class="week-dots-header">
-                        <button class="cal-nav cal-nav-sm" onclick="weekNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="15 18 9 12 15 6"/></svg></button>
-                        <span class="week-dots-label" id="weekLabel">This week</span>
-                        <button class="cal-nav cal-nav-sm" onclick="weekNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg></button>
-                    </div>
-                    <div class="week-dots-row" id="weekDots"></div>
-                </div>
-                <div class="volume-chart" id="volumeChartWrap" style="display:none">
-                    <span class="week-dots-label">Weekly Volume (8 weeks)</span>
-                    <canvas id="volumeCanvas" width="280" height="70"></canvas>
-                </div>
-
-                <!-- Pace Zones & Race Predictions inside training summary -->
-                <div id="paceZonesCard" style="display:none">
-                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Pace Zones</div>
-                    <div id="paceZonesList"></div>
-                </div>
-                <div id="racePredCard" style="display:none">
-                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Race Predictions</div>
-                    <div id="raceGrid" class="race-grid"></div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
 
         <!-- Heart Rate -->
         <div id="hrCard" class="card" style="display:none">
-            <div class="card-label">
-                Heart Rate
-                <div class="hr-toggles">
-                    <button class="hr-tog" id="togSleep" onclick="toggleHRZone('sleep')">Sleep</button>
-                </div>
+            <div class="card-label">Heart Rate
+                <div class="hr-toggles"><button class="hr-tog" id="togSleep" onclick="toggleHRZone('sleep')">Sleep</button></div>
             </div>
             <div class="hr-wrap">
                 <canvas id="hrCanvas" width="600" height="160"></canvas>
@@ -296,8 +284,20 @@
         </div>
     </div>
 
-    <!-- ========== RIGHT: AI Coach ========== -->
+    <!-- ========== RIGHT: Calendar + AI ========== -->
     <div class="col col-right">
+        <!-- Compact Calendar -->
+        <div class="card card-calendar card-calendar-compact">
+            <div class="cal-header">
+                <button class="cal-nav" onclick="calNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg></button>
+                <span id="calMonth" class="cal-month"></span>
+                <button class="cal-nav" onclick="calNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+            <div class="cal-days"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+            <div id="calGrid" class="cal-grid"></div>
+            <div id="planDay" class="plan-day" style="display:none"></div>
+        </div>
+
         <div class="col-header">AI Coach</div>
         {% if has_ai %}
 
