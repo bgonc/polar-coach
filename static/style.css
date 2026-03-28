@@ -2,25 +2,25 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --bg: #08090c;
-    --bg2: #0e1015;
-    --surface: #141720;
-    --surface2: #1a1e2a;
-    --border: #1f2333;
-    --border2: #282d3e;
-    --text: #f4f4f6;
-    --text2: #b4b7c9;
-    --text3: #7d8099;
+    --bg: #0c0d12;
+    --bg2: #12141b;
+    --surface: #181b24;
+    --surface2: #1f2330;
+    --border: #262a38;
+    --border2: #323748;
+    --text: #f0f1f4;
+    --text2: #c0c3d4;
+    --text3: #8a8ea4;
     --green: #00d68f;
-    --green-dim: rgba(0, 214, 143, 0.12);
+    --green-dim: rgba(0, 214, 143, 0.14);
     --yellow: #f5a623;
-    --yellow-dim: rgba(245, 166, 35, 0.12);
+    --yellow-dim: rgba(245, 166, 35, 0.14);
     --red: #ff4757;
-    --red-dim: rgba(255, 71, 87, 0.12);
-    --blue: #4f8cff;
-    --blue-dim: rgba(79, 140, 255, 0.12);
-    --purple: #a855f7;
-    --purple-dim: rgba(168, 85, 247, 0.12);
+    --red-dim: rgba(255, 71, 87, 0.14);
+    --blue: #5a95ff;
+    --blue-dim: rgba(90, 149, 255, 0.14);
+    --purple: #b06aff;
+    --purple-dim: rgba(176, 106, 255, 0.14);
     --accent: #e74c3c;
     --r: 14px;
     --r-sm: 10px;
@@ -90,7 +90,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .col-header { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); padding: 0; margin: 0; }
 
 /* Cards */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 0.85rem; transition: background-color 0.3s ease, border-color 0.3s ease; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 0.85rem; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .card-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.6rem; }
 
 /* === Score Cards === */
@@ -551,29 +551,29 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
 /* Light theme overrides */
 :root.light {
-    --bg: #f1f3f5;
-    --bg2: #e8eaed;
+    --bg: #f5f6f8;
+    --bg2: #eceef1;
     --surface: #ffffff;
-    --surface2: #f1f3f5;
-    --border: #d4d7de;
-    --border2: #bcc0ca;
-    --text: #111318;
-    --text2: #3a3e4e;
-    --text3: #656a80;
-    --green: #0c8f5e;
-    --green-dim: rgba(12, 143, 94, 0.1);
-    --yellow: #b07608;
-    --yellow-dim: rgba(176, 118, 8, 0.1);
-    --red: #c53040;
-    --red-dim: rgba(197, 48, 64, 0.1);
-    --blue: #2b65cc;
-    --blue-dim: rgba(43, 101, 204, 0.1);
-    --purple: #7530b8;
-    --purple-dim: rgba(117, 48, 184, 0.1);
-    --accent: #c53040;
+    --surface2: #f2f3f6;
+    --border: #e0e2e8;
+    --border2: #cdd0d8;
+    --text: #1a1c24;
+    --text2: #444857;
+    --text3: #6d7186;
+    --green: #0a8a58;
+    --green-dim: rgba(10, 138, 88, 0.08);
+    --yellow: #a86b00;
+    --yellow-dim: rgba(168, 107, 0, 0.08);
+    --red: #c42b3b;
+    --red-dim: rgba(196, 43, 59, 0.08);
+    --blue: #2960c4;
+    --blue-dim: rgba(41, 96, 196, 0.08);
+    --purple: #6d28b0;
+    --purple-dim: rgba(109, 40, 176, 0.08);
+    --accent: #c42b3b;
 }
 :root.light .landing-glow { background: radial-gradient(circle, rgba(197,48,64,0.05) 0%, transparent 70%); }
-:root.light .ai-bubble { background: var(--surface2); border-color: var(--border); color: var(--text2); }
+:root.light .ai-bubble { background: var(--surface2); border-color: var(--border); color: var(--text); }
 :root.light .user-bubble { background: var(--accent); border-color: var(--accent); color: white; }
 :root.light .btn-connect { box-shadow: 0 4px 20px rgba(197,48,64,0.15); }
 :root.light .loading-overlay { background: rgba(241,243,245,0.75); }
@@ -593,8 +593,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 :root.light .ai-avatar { background: linear-gradient(135deg, var(--accent), #e06070); }
 :root.light .ai-send { background: var(--accent); }
 :root.light .navbar { background: var(--surface); border-color: var(--border); }
-:root.light .date-arrow, :root.light .sync-btn, :root.light .cal-nav { background: var(--surface); border-color: var(--border); }
-:root.light .date-label { background: var(--surface); border-color: var(--border); }
+:root.light .card { box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 :root.light .journal-mood-btn { background: var(--surface2); border-color: var(--border); }
 :root.light .journal-mood-btn.selected { background: var(--accent); border-color: var(--accent); color: white; }
 :root.light .pace-zone-row { background: var(--surface2); }
