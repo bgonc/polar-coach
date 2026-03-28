@@ -1,4 +1,4 @@
-"""AI-powered training coach using OpenRouter API with weather and athlete context."""
+"""AI-powered training coach using OpenRouter API — optimized for token efficiency."""
 
 import os
 import requests
@@ -6,12 +6,39 @@ from datetime import datetime
 from openai import OpenAI
 
 
+# Model registry — switchable from profile
+AI_MODELS = {
+    "gpt-5.4-nano": {"id": "openai/gpt-5.4-nano", "name": "GPT-5.4 Nano", "tier": "Best value"},
+    "gemini-3-flash": {"id": "google/gemini-3-flash-preview", "name": "Gemini 3 Flash", "tier": "Good value"},
+    "claude-sonnet": {"id": "anthropic/claude-sonnet-4.6", "name": "Claude Sonnet 4.6", "tier": "Best quality"},
+    "gemini-2.5-flash": {"id": "google/gemini-2.5-flash", "name": "Gemini 2.5 Flash", "tier": "Budget"},
+    "grok-4-fast": {"id": "x-ai/grok-4-fast", "name": "Grok 4 Fast", "tier": "Cheap"},
+    "deepseek-v3": {"id": "deepseek/deepseek-v3.2", "name": "DeepSeek V3.2", "tier": "Cheap"},
+}
+
+DEFAULT_MODEL = "gpt-5.4-nano"
+
+
+def _get_model_id():
+    from local_data import get_profile
+    p = get_profile()
+    key = p.get("ai_model", DEFAULT_MODEL)
+    return AI_MODELS.get(key, AI_MODELS[DEFAULT_MODEL])["id"]
+
+
+def _get_client():
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        return None
+    return OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
+
+
+# ========== Athlete Profile (compact) ==========
+
 def _get_athlete_profile():
-    """Load athlete profile and format for AI context."""
     from local_data import get_profile
     p = get_profile()
 
-    # Calculate age from DOB
     age = ""
     if p.get("date_of_birth"):
         try:
@@ -20,199 +47,340 @@ def _get_athlete_profile():
         except ValueError:
             pass
 
-    sections = []
+    lines = []
+    # One-line identity
+    identity = [p.get("name", ""), f"{age}y" if age else "", p.get("gender", ""), f"{p.get('height_cm','')}cm/{p.get('weight_kg','')}kg" if p.get("height_cm") else ""]
+    lines.append("Athlete: " + ", ".join(x for x in identity if x))
 
-    # Identity
-    identity = []
-    if p.get("name"): identity.append(f"Name: {p['name']}")
-    if age: identity.append(f"Age: {age}")
-    if p.get("gender"): identity.append(f"Gender: {p['gender']}")
-    if p.get("height_cm"): identity.append(f"Height: {p['height_cm']}cm")
-    if p.get("weight_kg"): identity.append(f"Weight: {p['weight_kg']}kg")
-    if p.get("bmi"): identity.append(f"BMI: {p['bmi']}")
-    if p.get("location"): identity.append(f"Location: {p['location']}")
-    if identity:
-        sections.append("Personal: " + ", ".join(identity))
+    if p.get("work_schedule"): lines.append(f"Schedule: {p['work_schedule']}. {p.get('lifestyle', '')}")
+    if p.get("sports"): lines.append(f"Sports: {p['sports']}. Equipment: {p.get('equipment', 'bodyweight')}")
+    if p.get("training_background"): lines.append(f"Background: {p['training_background']}. Goals: {p.get('goals', 'general fitness')}")
 
-    # Lifestyle
-    lifestyle = []
-    if p.get("work_schedule"): lifestyle.append(f"Work: {p['work_schedule']}")
-    if p.get("lifestyle"): lifestyle.append(p["lifestyle"])
-    if p.get("activity_level"): lifestyle.append(f"Activity level: {p['activity_level']}")
-    if p.get("sleep_goal"): lifestyle.append(f"Sleep goal: {p['sleep_goal']}")
-    if lifestyle:
-        sections.append("Lifestyle: " + ". ".join(lifestyle))
-
-    # Training
-    training = []
-    if p.get("sports"): training.append(f"Sports: {p['sports']}")
-    if p.get("training_background"): training.append(f"Background: {p['training_background']}")
-    if p.get("equipment"): training.append(f"Equipment: {p['equipment']}")
-    if p.get("goals"): training.append(f"Goals: {p['goals']}")
-    if training:
-        sections.append("Training: " + ". ".join(training))
-
-    # Physiology — critical for prescribing intensity
+    # Physiology — compact single line
     physio = []
-    if p.get("vo2max"): physio.append(f"VO2max: {p['vo2max']}")
-    if p.get("max_hr"): physio.append(f"Max HR: {p['max_hr']}bpm")
-    if p.get("resting_hr"): physio.append(f"Resting HR: {p['resting_hr']}bpm")
-    if p.get("aerobic_threshold"): physio.append(f"Aerobic threshold: {p['aerobic_threshold']}bpm")
-    if p.get("anaerobic_threshold"): physio.append(f"Anaerobic threshold: {p['anaerobic_threshold']}bpm")
-    if p.get("mas_pace"): physio.append(f"MAS: {p['mas_pace']}")
-    if p.get("map_watts"): physio.append(f"MAP: {p['map_watts']}W")
-    if p.get("ftp_watts"): physio.append(f"FTP: {p['ftp_watts']}W")
-    if physio:
-        sections.append("Physiology: " + ", ".join(physio))
+    for key, label in [("vo2max", "VO2max"), ("max_hr", "MaxHR"), ("resting_hr", "RestHR"), ("aerobic_threshold", "AeT"), ("anaerobic_threshold", "AnT"), ("mas_pace", "MAS")]:
+        if p.get(key): physio.append(f"{label}:{p[key]}")
+    if physio: lines.append("Physio: " + ", ".join(physio))
 
-    # HR Zones — so AI can prescribe exact zones
-    zones = []
-    for i in range(1, 6):
-        z = p.get(f"hr_zone_{i}", "")
-        if z: zones.append(f"Z{i}: {z}")
-    if zones:
-        sections.append("HR Zones: " + " | ".join(zones))
+    # HR zones — one line
+    zones = [p.get(f"hr_zone_{i}", "") for i in range(1, 6)]
+    if any(zones): lines.append("Zones: " + " | ".join(f"Z{i+1}:{z}" for i, z in enumerate(zones) if z))
 
-    # Injuries & notes
-    if p.get("injuries"):
-        sections.append(f"Injuries/limitations: {p['injuries']}")
-    if p.get("notes"):
-        sections.append(f"Coach notes: {p['notes']}")
+    if p.get("injuries"): lines.append(f"Injuries: {p['injuries']}")
+    if p.get("notes"): lines.append(f"Notes: {p['notes']}")
 
-    sections.append("Tracking: Polar Vantage V3 (continuous HR, sleep, nightly recharge, ANS charge)")
+    return "\n".join(lines)
 
-    return "Athlete profile:\n" + "\n".join(f"- {s}" for s in sections)
+
+# ========== System Prompts (lean) ==========
+
+COACH_RULES = """You are a conservative endurance coach analyzing Polar watch data.
+
+Rules:
+- Match workout to ACTUAL training volume, not recovery. Low volume (0-2/week) = easy only.
+- Never increase intensity without 3+ weeks of consistent base.
+- Recovery = permission to train, not permission to train hard.
+- Prioritize injury prevention. Default to easier if uncertain.
+- Be precise: use HR zones, paces, sets/reps from athlete data.
+- Factor in weather for indoor/outdoor decisions.
+- Respect work schedule and family time.
+- Keep responses to 3-4 paragraphs. No fluff.
+- Week starts Monday (European format)."""
 
 
 def _system_prompt():
-    profile = _get_athlete_profile()
-    return f"""You are an elite sports performance coach analyzing data from a Polar watch.
-You give concise, actionable daily training advice based on recovery metrics, sleep quality, heart rate variability, training history, and current weather conditions.
-
-{profile}
-
-Critical rules:
-- ALWAYS check the Training Volume section first. If weekly volume is low (0-2 sessions, under 2h), the athlete is in a base-building or returning phase — prescribe EASY, SHORT sessions only. No intervals, no tempo, no 8-10km runs.
-- Good recovery numbers (high readiness, good sleep) do NOT mean the athlete is fit enough for hard sessions. Recovery = permission to train, not permission to train hard. Fitness comes from consistent training history.
-- Match workout difficulty to ACTUAL recent training volume, not recovery status. Someone doing 30min once a week should not be told to do VO2max intervals.
-- For low-volume athletes: easy runs of 20-30min, walks, bodyweight circuits. Build volume 10% per week max.
-- Only suggest tempo/interval/long runs when weekly volume has been consistently 3+ sessions for 3+ weeks.
-
-Your style:
-- Supportive and realistic, like a coach who knows the athlete's actual level
-- Lead with the recommendation (train / easy / rest)
-- Back it up with specific numbers from the data
-- Factor in weather: suggest indoor workouts on bad weather days, outdoor runs on good days
-- Consider the athlete's work schedule and family life when suggesting training times
-- If suggesting a workout, give practical structure appropriate to their level
-- Keep it to 3-5 paragraphs max
-- Be honest about fitness level — don't overhype readiness when training volume is low"""
+    return f"{COACH_RULES}\n\n{_get_athlete_profile()}"
 
 
 def _plan_prompt():
-    profile = _get_athlete_profile()
-    return f"""You are an elite sports performance coach creating personalized weekly training plans.
+    return f"""{COACH_RULES}
 
-{profile}
+Plan rules:
+- Start from athlete's CURRENT volume, not potential.
+- Increase max 10%/week. Low volume = base building first.
+- Running: easy Z1-2 for base, intensity only after 3+ weeks consistent.
+- Strength: bodyweight/dumbbell matching equipment.
+- 2-3 rest days/week for low volume, 1-2 for established.
+- Monday-to-Sunday format. Suggest training times around work.
 
-Critical rules:
-- ALWAYS check Training Volume first. Start the plan from WHERE THE ATHLETE ACTUALLY IS, not where they want to be.
-- If current volume is low (0-2 sessions/week, under 2h), the first 2-4 weeks must be base building: short easy runs (20-30min), basic bodyweight, lots of rest days.
-- Increase volume max 10% per week. No jumps from 1h/week to 5h/week.
-- Only introduce intervals/tempo after 3+ weeks of consistent 3+ sessions/week.
-- For race goals: be realistic about timeline. If athlete runs 30min/week, they need 12+ weeks to prepare for a 10km.
-
-Your plans must:
-- Start from the athlete's CURRENT fitness level, not their potential
-- Work around work schedule and family commitments
-- Factor in weather for outdoor vs indoor decisions
-- Follow progressive overload: build volume first, then intensity
-- Running: mostly easy runs in Zone 1-2 for base building, minimal intensity work early on
-- Strength: bodyweight and dumbbell work matching available equipment
-- Include 2-3 rest days per week for low-volume athletes, 1-2 for established athletes
-- Suggest realistic training times (early morning, lunch break, or after work)
-- IMPORTANT: Week starts on MONDAY and ends on SUNDAY (European format)
-- Format as a clean Monday-to-Sunday schedule with session details
-- Add a weekly focus note and total volume target"""
+{_get_athlete_profile()}"""
 
 
-AI_MODELS = {
-    "gemini-3-flash": {"id": "google/gemini-3-flash-preview", "name": "Gemini 3 Flash", "tier": "Best value"},
-    "gemini-2.5-flash": {"id": "google/gemini-2.5-flash", "name": "Gemini 2.5 Flash", "tier": "Budget"},
-    "claude-sonnet": {"id": "anthropic/claude-sonnet-4.6", "name": "Claude Sonnet 4.6", "tier": "Best quality"},
-    "grok-4-fast": {"id": "x-ai/grok-4-fast", "name": "Grok 4 Fast", "tier": "Cheap"},
-    "deepseek-v3": {"id": "deepseek/deepseek-v3.2", "name": "DeepSeek V3.2", "tier": "Cheap"},
-    "gpt-5.4-nano": {"id": "openai/gpt-5.4-nano", "name": "GPT-5.4 Nano", "tier": "Budget"},
-}
+# ========== Context (optimized — summaries not raw data) ==========
 
-DEFAULT_MODEL = "gemini-3-flash"
+def _build_context(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, training_summary=None, location=""):
+    parts = []
+
+    # Weather — 1 line
+    weather = _get_weather_for_location(location)
+    if weather:
+        parts.append(f"Weather: {weather['description']}, {weather['temp_c']}°C (feels {weather['feels_like_c']}°C), wind {weather['wind_kmh']}km/h")
+
+    # Coaching insights — already computed, just pass warnings
+    if coaching_analysis:
+        items = coaching_analysis.get("warnings", []) + coaching_analysis.get("recommendations", []) + coaching_analysis.get("info", [])
+        if items:
+            parts.append("Insights: " + " | ".join(items[:5]))
+
+    # Training volume — 2 lines max
+    if training_summary:
+        tw = training_summary.get("week", {})
+        tm = training_summary.get("month", {})
+        if tw.get("sessions", 0) > 0 or tm.get("sessions", 0) > 0:
+            parts.append(f"Week: {tw['sessions']}sess, {tw['duration_min']}min, {tw['distance_km']:.1f}km")
+            parts.append(f"Month: {tm['sessions']}sess, {tm['duration_min']}min, {tm['distance_km']:.1f}km")
+
+    # Sleep — summarize last 3 nights only (not 7 individual lines)
+    if sleep_data:
+        nights = sleep_data if isinstance(sleep_data, list) else sleep_data.get("nights", [])
+        recent = nights[-3:] if len(nights) > 3 else nights
+        if recent:
+            scores = [n.get("sleep_score", 0) for n in recent if n.get("sleep_score")]
+            hours = [(n.get("light_sleep", 0) + n.get("deep_sleep", 0) + n.get("rem_sleep", 0)) / 3600 for n in recent]
+            if scores:
+                parts.append(f"Sleep(3d): scores {','.join(str(s) for s in scores)}, hours {','.join(f'{h:.1f}' for h in hours)}")
+
+    # Recharge — summarize last 3 nights
+    if recharge_data:
+        recharges = recharge_data if isinstance(recharge_data, list) else recharge_data.get("recharges", [])
+        recent = recharges[-3:] if len(recharges) > 3 else recharges
+        if recent:
+            ans = [f"{r.get('ans_charge', 0):.1f}" for r in recent]
+            hrv = [str(r.get("heart_rate_variability_avg", 0)) for r in recent]
+            rhr = [str(r.get("heart_rate_avg", 0)) for r in recent]
+            parts.append(f"Recovery(3d): ANS [{','.join(ans)}], HRV [{','.join(hrv)}]ms, RHR [{','.join(rhr)}]bpm")
+
+    # Recent exercises — compact, last 5
+    if exercises:
+        items = exercises if isinstance(exercises, list) else exercises.get("exercises", [])
+        if items:
+            ex_lines = []
+            for e in items[:5]:
+                sport = e.get("sport", e.get("detailed-sport-info", "?"))
+                if isinstance(sport, dict): sport = sport.get("name", "?")
+                date = str(e.get("date", e.get("start-time", "?")))[:10]
+                dur = e.get("duration_min", e.get("duration", "?"))
+                ex_lines.append(f"{date}:{sport},{dur}min")
+            parts.append(f"Exercises: {' | '.join(ex_lines)}")
+
+    return "\n".join(parts) if parts else "No data."
 
 
-def _get_model_id():
-    from local_data import get_profile
-    p = get_profile()
-    key = p.get("ai_model", DEFAULT_MODEL)
-    model = AI_MODELS.get(key, AI_MODELS[DEFAULT_MODEL])
-    return model["id"]
+def _build_full_context(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, training_summary=None, location=""):
+    """Full context for deep tasks (plans, weekly reports). More detail than daily advice."""
+    parts = []
+
+    weather = _get_weather_for_location(location)
+    if weather:
+        parts.append(f"Weather: {weather['description']}, {weather['temp_c']}°C (feels {weather['feels_like_c']}°C), range {weather['min_temp_c']}-{weather['max_temp_c']}°C, wind {weather['wind_kmh']}km/h, UV {weather['uv_index']}")
+
+    if coaching_analysis:
+        items = coaching_analysis.get("warnings", []) + coaching_analysis.get("recommendations", []) + coaching_analysis.get("info", [])
+        if items:
+            parts.append("Insights:\n" + "\n".join(f"- {i}" for i in items))
+
+    if training_summary:
+        tw = training_summary.get("week", {})
+        tm = training_summary.get("month", {})
+        parts.append(f"Training - Week: {tw['sessions']}sess, {tw['duration_min']}min, {tw['distance_km']:.1f}km, {tw['calories']}cal")
+        parts.append(f"Training - Month: {tm['sessions']}sess, {tm['duration_min']}min, {tm['distance_km']:.1f}km, {tm['calories']}cal")
+
+    if sleep_data:
+        nights = sleep_data if isinstance(sleep_data, list) else sleep_data.get("nights", [])
+        recent = nights[-7:] if len(nights) > 7 else nights
+        if recent:
+            parts.append("Sleep (7d):")
+            for n in recent:
+                h = (n.get("light_sleep", 0) + n.get("deep_sleep", 0) + n.get("rem_sleep", 0)) / 3600
+                parts.append(f"  {n.get('date','?')}: {h:.1f}h, score:{n.get('sleep_score','?')}")
+
+    if recharge_data:
+        recharges = recharge_data if isinstance(recharge_data, list) else recharge_data.get("recharges", [])
+        recent = recharges[-7:] if len(recharges) > 7 else recharges
+        if recent:
+            parts.append("Recovery (7d):")
+            for r in recent:
+                parts.append(f"  {r.get('date','?')}: ANS:{r.get('ans_charge','?')}, HRV:{r.get('heart_rate_variability_avg','?')}ms, RHR:{r.get('heart_rate_avg','?')}bpm")
+
+    if exercises:
+        items = exercises if isinstance(exercises, list) else exercises.get("exercises", [])
+        if items:
+            parts.append("Exercises:")
+            for e in items[:10]:
+                sport = e.get("sport", e.get("detailed-sport-info", "?"))
+                if isinstance(sport, dict): sport = sport.get("name", "?")
+                date = str(e.get("date", e.get("start-time", "?")))[:10]
+                dur = e.get("duration_min", e.get("duration", "?"))
+                dist = e.get("distance_km", "")
+                line = f"  {date}: {sport}, {dur}min"
+                if dist: line += f", {dist}km"
+                parts.append(line)
+
+    return "\n".join(parts) if parts else "No data."
 
 
-def _get_client():
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        return None
-    return OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=api_key,
+# ========== API Functions ==========
+
+def get_ai_advice(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, prompt=None, training_summary=None, location=""):
+    client = _get_client()
+    if not client: return None
+
+    context = _build_context(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, training_summary, location)
+    user_prompt = prompt or "What should I do today? Give me a specific workout or rest recommendation."
+
+    response = client.chat.completions.create(
+        model=_get_model_id(),
+        messages=[
+            {"role": "system", "content": _system_prompt()},
+            {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n\n{user_prompt}"},
+        ],
     )
+    return response.choices[0].message.content
 
+
+def generate_training_plan(sleep_data, recharge_data, exercises, coaching_analysis, goal=None, training_summary=None, location=""):
+    client = _get_client()
+    if not client: return None
+
+    context = _build_context(sleep_data, recharge_data, exercises, None, coaching_analysis, training_summary, location)
+    goal_text = goal or "running endurance and home gym strength"
+
+    response = client.chat.completions.create(
+        model=_get_model_id(),
+        messages=[
+            {"role": "system", "content": _plan_prompt()},
+            {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n\nWeekly plan for: {goal_text}"},
+        ],
+    )
+    return response.choices[0].message.content
+
+
+def create_training_plan(sleep_data, recharge_data, exercises, coaching, training_sum, events, plan_type, race_date, race_distance, notes, location=""):
+    client = _get_client()
+    if not client: return None
+
+    context = _build_full_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
+
+    event_text = ""
+    if events:
+        event_text = "Orienteering events: " + ", ".join(f"{e['date']}:{e['type']}@{e['location']}" for e in events[:8])
+
+    if plan_type == "race":
+        goal = f"{race_distance} race on {race_date}. Periodized plan with taper."
+    elif plan_type == "orienteering":
+        goal = "Orienteering fitness. Include Iltarastit events."
+    elif plan_type == "running":
+        goal = "Running endurance and speed improvement."
+    else:
+        goal = "General fitness — running + home gym."
+
+    if notes: goal += f" {notes}"
+
+    response = client.chat.completions.create(
+        model=_get_model_id(),
+        messages=[
+            {"role": "system", "content": _plan_prompt()},
+            {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n{event_text}\n\nCreate plan: {goal}\nFormat: Overview, then Mon-Sun weekly schedule with specific workouts."},
+        ],
+    )
+    plan_text = response.choices[0].message.content
+    schedule = _extract_schedule(client, plan_text)
+    return plan_text, schedule
+
+
+def _extract_schedule(client, plan_text):
+    try:
+        response = client.chat.completions.create(
+            model=_get_model_id(),
+            messages=[
+                {"role": "system", "content": "Extract training schedule as JSON array. Each: {date:YYYY-MM-DD, type:run/strength/rest/orienteering, title:2-4 words, duration:e.g.45min}. JSON only."},
+                {"role": "user", "content": plan_text},
+            ],
+        )
+        import json
+        text = response.choices[0].message.content.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+            text = text.rsplit("```", 1)[0]
+        return json.loads(text.strip())
+    except Exception:
+        return []
+
+
+def adjust_daily_plan(sleep_data, recharge_data, exercises, coaching, training_sum, active_plan, reason, location=""):
+    client = _get_client()
+    if not client: return None
+
+    context = _build_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
+
+    plan_ref = ""
+    if active_plan:
+        plan_ref = f"Active plan ({active_plan.get('type','general')}, created {active_plan.get('created','?')[:10]})"
+
+    prompt = f"""{datetime.now().strftime('%A %d.%m.%Y')}
+{context}
+{plan_ref}
+
+Should I follow today's plan, modify it, or skip? Give adjusted workout."""
+    if reason: prompt += f"\nReason: {reason}"
+
+    response = client.chat.completions.create(
+        model=_get_model_id(),
+        messages=[
+            {"role": "system", "content": _system_prompt()},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return response.choices[0].message.content
+
+
+def generate_weekly_report(sleep_data, recharge_data, exercises, coaching, training_sum, location=""):
+    client = _get_client()
+    if not client: return None
+
+    context = _build_full_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
+
+    response = client.chat.completions.create(
+        model=_get_model_id(),
+        messages=[
+            {"role": "system", "content": _system_prompt()},
+            {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n\nWeekly report: training summary, recovery trends, key observations, next week recommendations. 4-6 paragraphs."},
+        ],
+    )
+    return response.choices[0].message.content
+
+
+# ========== Weather ==========
 
 def _get_weather():
-    """Fetch weather for stored location or auto-detect."""
     return _get_weather_for_location("")
 
 
 def _get_weather_for_location(location=""):
-    """Fetch current weather using wttr.in. If location is empty, auto-detects via IP."""
     try:
         query = location.strip() if location else ""
         url = f"https://wttr.in/{query}?format=j1" if query else "https://wttr.in/?format=j1"
         resp = requests.get(url, timeout=5)
-        if resp.status_code != 200:
-            return None
+        if resp.status_code != 200: return None
         data = resp.json()
         current = data.get("current_condition", [{}])[0]
         area = data.get("nearest_area", [{}])[0]
         api_city = area.get("areaName", [{}])[0].get("value", "Unknown")
         country = area.get("country", [{}])[0].get("value", "")
-
-        # If user entered a postal code (mostly digits), use the API-resolved city name
-        # Otherwise use what the user typed as the display name
-        is_postal = query and sum(c.isdigit() for c in query) > len(query) / 2
-        if not query:
-            city = api_city
-        elif is_postal:
-            city = api_city
-        else:
-            city = query.split(",")[0].strip().title()
-
         forecast = data.get("weather", [{}])[0]
 
-        # Map weather codes to emoji
-        code = int(current.get("weatherCode", 0))
-        emoji = _weather_emoji(code)
+        is_postal = query and sum(c.isdigit() for c in query) > len(query) / 2
+        city = api_city if (not query or is_postal) else query.split(",")[0].strip().title()
 
+        code = int(current.get("weatherCode", 0))
         return {
-            "location": f"{city}, {country}",
-            "city": city,
-            "temp_c": current.get("temp_C", "?"),
-            "feels_like_c": current.get("FeelsLikeC", "?"),
+            "location": f"{city}, {country}", "city": city,
+            "temp_c": current.get("temp_C", "?"), "feels_like_c": current.get("FeelsLikeC", "?"),
             "humidity": current.get("humidity", "?"),
             "description": current.get("weatherDesc", [{}])[0].get("value", "?"),
             "wind_kmh": current.get("windspeedKmph", "?"),
-            "max_temp_c": forecast.get("maxtempC", "?"),
-            "min_temp_c": forecast.get("mintempC", "?"),
-            "uv_index": current.get("uvIndex", "?"),
-            "emoji": emoji,
+            "max_temp_c": forecast.get("maxtempC", "?"), "min_temp_c": forecast.get("mintempC", "?"),
+            "uv_index": current.get("uvIndex", "?"), "emoji": _weather_emoji(code),
         }
     except Exception:
         return None
@@ -227,297 +395,3 @@ def _weather_emoji(code):
     if code in (179, 182, 185, 227, 230, 323, 326, 329, 332, 335, 338, 362, 365, 368, 371, 374, 377): return "snowflake"
     if code in (200, 386, 389, 392, 395): return "bolt"
     return "cloud"
-
-
-def get_ai_advice(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, prompt=None, training_summary=None, location=""):
-    """Get AI coaching advice based on Polar data + weather."""
-    client = _get_client()
-    if not client:
-        return None
-
-    context = _build_context(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, training_summary, location)
-    user_prompt = prompt or "Based on all my data and today's weather, give me today's training recommendation. Should I train hard, go moderate, easy, or rest? Give me a specific workout."
-
-    response = client.chat.completions.create(
-        model=_get_model_id(),
-        messages=[
-            {"role": "system", "content": _system_prompt()},
-            {"role": "user", "content": f"Today is {datetime.now().strftime('%A, %B %d, %Y')}.\n\n{context}\n\n{user_prompt}"},
-        ],
-    )
-    return response.choices[0].message.content
-
-
-def generate_training_plan(sleep_data, recharge_data, exercises, coaching_analysis, goal=None, training_summary=None, location=""):
-    """Generate a weekly training plan."""
-    client = _get_client()
-    if not client:
-        return None
-
-    context = _build_context(sleep_data, recharge_data, exercises, None, coaching_analysis, training_summary, location)
-    goal_text = goal or "running endurance and home gym strength"
-
-    response = client.chat.completions.create(
-        model=_get_model_id(),
-        messages=[
-            {"role": "system", "content": _plan_prompt()},
-            {"role": "user", "content": f"Today is {datetime.now().strftime('%A, %B %d, %Y')}.\n\n{context}\n\nCreate a weekly training plan starting today. Goal: {goal_text}."},
-        ],
-    )
-    return response.choices[0].message.content
-
-
-def create_training_plan(sleep_data, recharge_data, exercises, coaching, training_sum, events, plan_type, race_date, race_distance, notes, location=""):
-    """Create a structured, multi-week training plan."""
-    client = _get_client()
-    if not client:
-        return None
-
-    context = _build_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
-    profile = _get_athlete_profile()
-
-    # Build event context
-    event_text = ""
-    if events:
-        event_text = "\n## Upcoming Orienteering Events (Helsingin Suunnistajat Iltarastit)\n"
-        for e in events[:10]:
-            event_text += f"- {e['date']}: {e['type']} at {e['location']} ({e['address']})\n"
-
-    # Build plan request
-    if plan_type == "race":
-        goal = f"Prepare for a {race_distance} race on {race_date}. Build a periodized plan from today to race day with taper."
-    elif plan_type == "orienteering":
-        goal = "Improve orienteering fitness. Include the upcoming Iltarastit events in the schedule."
-    elif plan_type == "running":
-        goal = "Improve running endurance and speed. No specific race target, just progressive improvement."
-    else:
-        goal = "General fitness — mix of running and home gym strength training."
-
-    if notes:
-        goal += f" Additional notes: {notes}"
-
-    prompt = f"""Today is {datetime.now().strftime('%A, %B %d, %Y')}.
-
-{profile}
-
-{context}
-
-{event_text}
-
-Create a detailed training plan.
-Goal: {goal}
-
-Format the plan as:
-1. **Plan Overview** (goal, duration, weekly structure philosophy)
-2. **Week-by-week schedule** (Monday to Sunday, week starts on MONDAY) with specific daily workouts:
-   - For running: type, duration, pace/HR zone, distance target
-   - For strength: exercises, sets x reps, rest
-   - For orienteering events: mark them and plan around them
-   - Include rest days
-   - Suggest best training time based on work schedule
-3. **Key principles** (when to adjust, warning signs to back off)
-
-Be specific with HR zones, paces, and progressions based on the athlete's physiology data."""
-
-    response = client.chat.completions.create(
-        model=_get_model_id(),
-        messages=[
-            {"role": "system", "content": _plan_prompt()},
-            {"role": "user", "content": prompt},
-        ],
-    )
-    plan_text = response.choices[0].message.content
-
-    # Extract structured schedule for calendar display
-    schedule = _extract_schedule(client, plan_text)
-
-    return plan_text, schedule
-
-
-def _extract_schedule(client, plan_text):
-    """Ask AI to extract a JSON schedule from the plan text."""
-    try:
-        response = client.chat.completions.create(
-            model=_get_model_id(),
-            messages=[
-                {"role": "system", "content": "Extract the training schedule from the plan into a JSON array. Each item must have: date (YYYY-MM-DD), type (run/strength/rest/orienteering), title (short 2-4 word summary), duration (e.g. '45min'). Output ONLY valid JSON, no markdown, no explanation."},
-                {"role": "user", "content": plan_text},
-            ],
-        )
-        import json
-        text = response.choices[0].message.content.strip()
-        # Strip markdown code fences if present
-        if text.startswith("```"):
-            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
-            text = text.rsplit("```", 1)[0]
-        return json.loads(text.strip())
-    except Exception:
-        return []
-
-
-def adjust_daily_plan(sleep_data, recharge_data, exercises, coaching, training_sum, active_plan, reason, location=""):
-    """Adjust today's workout based on current recovery and any user input."""
-    client = _get_client()
-    if not client:
-        return None
-
-    context = _build_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
-    profile = _get_athlete_profile()
-
-    plan_text = ""
-    if active_plan:
-        plan_text = f"\n## Active Training Plan\nType: {active_plan.get('type', 'general')}\nCreated: {active_plan.get('created', '?')}\n\n{active_plan.get('plan_text', 'No plan details.')}"
-
-    prompt = f"""Today is {datetime.now().strftime('%A, %B %d, %Y')}.
-
-{profile}
-
-{context}
-
-{plan_text}
-
-Based on today's recovery data (sleep, HRV, ANS charge, stress) and the active training plan, tell me:
-1. What was planned for today?
-2. Should I follow the plan as-is, modify it, or skip it entirely?
-3. Give me the adjusted workout with specific details.
-"""
-    if reason:
-        prompt += f"\nAdditional context from the athlete: {reason}"
-
-    prompt += "\nBe concise — 2-3 paragraphs max. Lead with the decision."
-
-    response = client.chat.completions.create(
-        model=_get_model_id(),
-        messages=[
-            {"role": "system", "content": _system_prompt()},
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return response.choices[0].message.content
-
-
-def generate_weekly_report(sleep_data, recharge_data, exercises, coaching, training_sum, location=""):
-    """Ask the AI to summarize the past week of training and recovery."""
-    client = _get_client()
-    if not client:
-        return None
-
-    context = _build_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
-    profile = _get_athlete_profile()
-
-    prompt = f"""Today is {datetime.now().strftime('%A, %B %d, %Y')}.
-
-{profile}
-
-{context}
-
-Write a concise weekly training report for the past 7 days. Include:
-1. **Training Summary** — sessions completed, total volume, sport breakdown
-2. **Recovery & Sleep** — average sleep score, HRV trend, ANS charge pattern, stress levels
-3. **Key Observations** — what went well, what needs attention
-4. **Recommendations for Next Week** — adjust volume, focus areas, recovery priorities
-
-Keep it to 4-6 paragraphs. Use specific numbers from the data. Be honest and constructive."""
-
-    response = client.chat.completions.create(
-        model=_get_model_id(),
-        messages=[
-            {"role": "system", "content": _system_prompt()},
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return response.choices[0].message.content
-
-
-def _build_context(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, training_summary=None, location=""):
-    """Build comprehensive context for the AI."""
-    parts = []
-
-    # Weather
-    weather = _get_weather_for_location(location)
-    if weather:
-        parts.append(f"## Current Weather ({weather['location']})")
-        parts.append(f"- Conditions: {weather['description']}")
-        parts.append(f"- Temperature: {weather['temp_c']}°C (feels like {weather['feels_like_c']}°C)")
-        parts.append(f"- Today's range: {weather['min_temp_c']}°C to {weather['max_temp_c']}°C")
-        parts.append(f"- Humidity: {weather['humidity']}%, Wind: {weather['wind_kmh']} km/h, UV: {weather['uv_index']}")
-
-    # Coaching insights
-    if coaching_analysis:
-        warnings = coaching_analysis.get("warnings", [])
-        recs = coaching_analysis.get("recommendations", [])
-        info = coaching_analysis.get("info", [])
-        if warnings or recs or info:
-            parts.append("\n## Today's Insights")
-            for w in warnings:
-                parts.append(f"- ⚠ {w}")
-            for r in recs:
-                parts.append(f"- ✓ {r}")
-            for i in info:
-                parts.append(f"- ℹ {i}")
-
-    # Training summary
-    if training_summary:
-        tw = training_summary.get("week", {})
-        tm = training_summary.get("month", {})
-        if tw.get("sessions", 0) > 0 or tm.get("sessions", 0) > 0:
-            parts.append("\n## Training Volume")
-            parts.append(f"- This week: {tw['sessions']} sessions, {tw['duration_min']}min, {tw['distance_km']:.1f}km, {tw['calories']} cal")
-            parts.append(f"- This month: {tm['sessions']} sessions, {tm['duration_min']}min, {tm['distance_km']:.1f}km, {tm['calories']} cal")
-            if tw.get("sports"):
-                parts.append(f"- Sports breakdown (week): {', '.join(f'{k}: {v}' for k, v in tw['sports'].items())}")
-
-    # Sleep (last 7 nights)
-    if sleep_data:
-        nights = sleep_data if isinstance(sleep_data, list) else sleep_data.get("nights", [])
-        recent = nights[-7:] if len(nights) > 7 else nights
-        if recent:
-            parts.append("\n## Sleep (last 7 nights)")
-            for n in recent:
-                light = n.get("light_sleep", 0) / 60
-                deep = n.get("deep_sleep", 0) / 60
-                rem = n.get("rem_sleep", 0) / 60
-                total = (light + deep + rem) / 60
-                score = n.get("sleep_score", "N/A")
-                parts.append(
-                    f"- {n.get('date', '?')}: {total:.1f}h "
-                    f"(score: {score}, deep: {deep:.0f}m, REM: {rem:.0f}m)"
-                )
-
-    # Nightly recharge (last 7)
-    if recharge_data:
-        recharges = recharge_data if isinstance(recharge_data, list) else recharge_data.get("recharges", [])
-        recent = recharges[-7:] if len(recharges) > 7 else recharges
-        if recent:
-            parts.append("\n## Nightly Recharge (last 7 nights)")
-            for r in recent:
-                parts.append(
-                    f"- {r.get('date', '?')}: ANS charge {r.get('ans_charge', 'N/A')}, "
-                    f"HRV {r.get('heart_rate_variability_avg', 'N/A')}ms, "
-                    f"resting HR {r.get('heart_rate_avg', 'N/A')}bpm, "
-                    f"breathing {r.get('breathing_rate_avg', 'N/A')}/min"
-                )
-
-    # Recent exercises
-    if exercises:
-        items = exercises if isinstance(exercises, list) else exercises.get("exercises", [])
-        if items:
-            parts.append("\n## Recent Exercises")
-            for e in items[:10]:
-                sport = e.get("detailed-sport-info", e.get("sport", "Unknown"))
-                if isinstance(sport, dict):
-                    sport = sport.get("name", "Unknown")
-                date = e.get("start-time", e.get("date", "?"))
-                if isinstance(date, str) and len(date) > 10:
-                    date = date[:10]
-                dur = e.get("duration", e.get("duration_min", "?"))
-                dist = e.get("distance_km", "")
-                cal = e.get("calories", "")
-                line = f"- {date}: {sport}, duration: {dur}"
-                if dist:
-                    line += f", {dist}km"
-                if cal:
-                    line += f", {cal} cal"
-                parts.append(line)
-
-    return "\n".join(parts) if parts else "No data available."
