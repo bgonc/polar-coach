@@ -251,27 +251,6 @@
             </div>
         </div>
 
-        <!-- Sessions (shown on day click) -->
-        <div class="card" id="sessionsCard" style="display:none">
-            <div class="card-label">Sessions <span id="sessionsDateLabel"></span></div>
-            <div id="sessionList" class="session-list">
-                {% for e in exercises %}
-                <div class="session-item" data-date="{{ e.date }}" id="session-{{ e.id }}">
-                    <div class="session-dot {% if e.source == 'manual' %}manual{% endif %}"></div>
-                    <div class="session-info">
-                        <div class="session-sport">{{ e.sport }}{% if e.training_benefit %} <span class="benefit-tag benefit-{{ e.training_benefit|lower|replace(' ', '-') }}">{{ e.training_benefit }}</span>{% endif %}{% if e.source == 'manual' %} <span class="manual-tag">manual</span>{% endif %}</div>
-                        <div class="session-sub">{{ e.date }} &middot; {{ e.duration }}{% if e.distance_km %} &middot; {{ "%.1f"|format(e.distance_km) }}km{% endif %}{% if e.calories %} &middot; {{ e.calories }} cal{% endif %}</div>
-                    </div>
-                    {% if e.source == 'manual' %}
-                    <button class="session-del" onclick="deleteExercise('{{ e.id }}')" title="Delete">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
         <!-- Heart Rate -->
         <div id="hrCard" class="card" style="display:none">
             <div class="card-label">Heart Rate
@@ -363,7 +342,9 @@ const allSleep = {{ all_sleep_json | safe }};
 const allRecharge = {{ all_recharge_json | safe }};
 const dailyScores = {{ daily_scores_json | safe }};
 const exerciseDates = new Set({{ exercises | map(attribute='date') | list | tojson }});
-let planSchedule = {}; // date -> {type, title, duration}
+let planSchedule = {};
+const eventsByDate = {};
+({{ events_json | safe }}).forEach(e => { eventsByDate[e.date] = e; });
 const today = new Date().toISOString().slice(0, 10);
 let currentDate = '{{ selected_date }}';
 let calDate = new Date(currentDate + 'T12:00:00');
@@ -924,8 +905,12 @@ function renderCalendar() {
         if(exerciseDates.has(ds)) c+=' has-session';
         if(dailyScores[ds]) c+=' has-data';
         if(planSchedule[ds]) c+=' has-plan';
-        const planTip = planSchedule[ds] ? ` title="${planSchedule[ds].title} (${planSchedule[ds].duration || ''})"` : '';
-        h+=`<a href="#" class="${c}"${planTip} onclick="event.preventDefault();setDate('${ds}')">${d}</a>`;
+        if(eventsByDate[ds]) c+=' has-event';
+        let tip = '';
+        if(planSchedule[ds]) tip = planSchedule[ds].title;
+        if(eventsByDate[ds]) tip = (tip ? tip + ' | ' : '') + eventsByDate[ds].type + ' @ ' + eventsByDate[ds].location;
+        const tipAttr = tip ? ` title="${tip}"` : '';
+        h+=`<a href="#" class="${c}"${tipAttr} onclick="event.preventDefault();setDate('${ds}')">${d}</a>`;
     }
     document.getElementById('calGrid').innerHTML=h;
 }
@@ -976,24 +961,7 @@ function weekNav(dir) {
 }
 
 function showSessionsFor(ds) {
-    const card = document.getElementById('sessionsCard');
-    const list = document.getElementById('sessionList');
-    const label = document.getElementById('sessionsDateLabel');
-    const items = list.querySelectorAll('.session-item');
-
-    let visible = 0;
-    items.forEach(item => {
-        const match = item.dataset.date === ds;
-        item.style.display = match ? '' : 'none';
-        if (match) visible++;
-    });
-
-    if (visible > 0) {
-        card.style.display = '';
-        label.textContent = '— ' + ds;
-    } else {
-        card.style.display = 'none';
-    }
+    // No longer needed - recent exercises list handles this
 }
 
 renderWeekDots();
@@ -1236,18 +1204,33 @@ loadActivePlan();
 function updatePlanDay(ds) {
     const el = document.getElementById('planDay');
     const day = planSchedule[ds];
-    if (!day) { el.style.display = 'none'; return; }
+    const ev = eventsByDate[ds];
 
-    const typeColors = {run:'var(--green)', strength:'var(--blue)', rest:'var(--text3)', orienteering:'var(--purple)'};
-    const color = typeColors[day.type] || 'var(--text2)';
+    if (!day && !ev) { el.style.display = 'none'; return; }
     el.style.display = '';
-    el.innerHTML = `
-        <span class="plan-day-dot" style="background:${color}"></span>
-        <div class="plan-day-info">
-            <span class="plan-day-title">${esc(day.title || day.type || '')}</span>
-            <span class="plan-day-dur">${esc(day.duration || '')}</span>
-        </div>
-    `;
+
+    let html = '';
+    if (ev) {
+        html += `<div class="plan-day-event">
+            <span class="plan-day-dot" style="background:var(--purple)"></span>
+            <div class="plan-day-info">
+                <span class="plan-day-title">${esc(ev.type)} — ${esc(ev.location)}</span>
+                <span class="plan-day-dur">${esc(ev.address || '')}</span>
+            </div>
+        </div>`;
+    }
+    if (day) {
+        const typeColors = {run:'var(--green)', strength:'var(--blue)', rest:'var(--text3)', orienteering:'var(--purple)'};
+        const color = typeColors[day.type] || 'var(--text2)';
+        html += `<div class="plan-day-event">
+            <span class="plan-day-dot" style="background:${color}"></span>
+            <div class="plan-day-info">
+                <span class="plan-day-title">${esc(day.title || day.type || '')}</span>
+                <span class="plan-day-dur">${esc(day.duration || '')}</span>
+            </div>
+        </div>`;
+    }
+    el.innerHTML = html;
 }
 
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}

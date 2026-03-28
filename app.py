@@ -294,6 +294,7 @@ def dashboard(date=None):
         daily_scores_json=json.dumps(daily_scores),
         summaries=summaries,
         training_summary=training_summary,
+        events_json=json.dumps(_get_cached_events()),
         errors=errors,
         selected_date=date_str,
         is_today=date_str == datetime.now().strftime("%Y-%m-%d"),
@@ -700,6 +701,21 @@ def debug_data():
         json.dumps(data, indent=2, default=str),
         mimetype="application/json",
     )
+
+
+_events_cache = {"data": None, "ts": 0}
+
+def _get_cached_events():
+    import time
+    if time.time() - _events_cache["ts"] < 3600:
+        return _events_cache["data"] or []
+    try:
+        events = get_orienteering_events()
+        _events_cache["data"] = events
+        _events_cache["ts"] = time.time()
+        return events
+    except Exception:
+        return _events_cache["data"] or []
 
 
 def _safe_fetch(fn, errors, label):
