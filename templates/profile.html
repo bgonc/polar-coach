@@ -162,6 +162,21 @@
             <div class="pf-group"></div>
         </div>
 
+        <!-- AI Model -->
+        <div class="pf-section">AI Model</div>
+        <div class="pf-group">
+            <label>Model</label>
+            <select name="ai_model" class="pf-input">
+                <option value="gemini-3-flash" {% if profile.ai_model == 'gemini-3-flash' %}selected{% endif %}>Gemini 3 Flash — Best value (~$0.45/mo)</option>
+                <option value="claude-sonnet" {% if profile.ai_model == 'claude-sonnet' %}selected{% endif %}>Claude Sonnet 4.6 — Best quality (~$2.10/mo)</option>
+                <option value="gemini-2.5-flash" {% if profile.ai_model == 'gemini-2.5-flash' %}selected{% endif %}>Gemini 2.5 Flash — Budget (~$0.31/mo)</option>
+                <option value="grok-4-fast" {% if profile.ai_model == 'grok-4-fast' %}selected{% endif %}>Grok 4 Fast — Cheap (~$0.07/mo)</option>
+                <option value="deepseek-v3" {% if profile.ai_model == 'deepseek-v3' %}selected{% endif %}>DeepSeek V3.2 — Cheap (~$0.09/mo)</option>
+                <option value="gpt-5.4-nano" {% if profile.ai_model == 'gpt-5.4-nano' %}selected{% endif %}>GPT-5.4 Nano — Budget (~$0.15/mo)</option>
+            </select>
+            <span style="font-size:0.68rem;color:var(--text3);margin-top:0.2rem;display:block">Costs are estimates for ~100 requests/month. Claude gives best coaching quality, Gemini 3 Flash is the sweet spot.</span>
+        </div>
+
         <!-- Other -->
         <div class="pf-section">Other</div>
         <div class="pf-group">

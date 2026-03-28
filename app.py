@@ -22,7 +22,7 @@ from local_data import (
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
+app.secret_key = os.environ["FLASK_SECRET_KEY"]
 
 # Use filesystem sessions instead of cookies to avoid 4KB cookie limit
 from cachelib import FileSystemCache
@@ -771,4 +771,4 @@ def _format_duration(duration):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=os.getenv("FLASK_DEBUG", "false").lower() == "true", port=5000)

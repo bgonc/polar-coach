@@ -5,11 +5,12 @@ AI-powered training coach that connects to your Polar watch data. Get personaliz
 ![Landing Page](screenshots/landing.png)
 ![Dashboard Dark](screenshots/dashboard-dark.png)
 ![Dashboard Light](screenshots/dashboard-light.png)
+![Dashboard Detail](screenshots/dashboard-detail-light.png)
 
 ## Features
 
 **Recovery & Readiness**
-- Readiness score (composite of sleep, recovery, stress)
+- Readiness score (composite of sleep, recovery, stress) with contributor breakdown
 - Sleep quality analysis with stage breakdown (light/deep/REM)
 - Nightly Recharge tracking (ANS charge, HRV, resting HR, breathing rate)
 - Derived stress score from HRV and HR baselines
@@ -19,11 +20,14 @@ AI-powered training coach that connects to your Polar watch data. Get personaliz
 - 24-hour continuous HR chart with proper time axis
 - Interactive hover with crosshair and tooltip
 - Sleep zone overlay toggle
-- Stress proxy visualization
 
 **Training**
 - Manual exercise logging (running, strength, etc.) with distance tracking
+- Auto-classified training benefit tags (Base Building, Tempo, HIIT, Strength, Recovery, etc.)
 - Weekly and monthly training summaries (sessions, duration, distance, calories)
+- 8-week progressive volume chart
+- Pace zones calculated from MAS (5 zones: Easy → Speed)
+- Race predictions (5K, 10K, Half Marathon, Marathon) based on VO2max
 - Mini calendar with session dots and plan indicators
 - Training insights (volume trends, rest day reminders, cross-training suggestions)
 
@@ -31,12 +35,20 @@ AI-powered training coach that connects to your Polar watch data. Get personaliz
 - Daily personalized advice based on recovery, weather, and training load
 - Adaptive training plans (general fitness, running, race goals, orienteering)
 - Plans adjust daily based on your actual recovery data
+- Weekly AI-generated training reports
 - Orienteering event integration (Helsingin Suunnistajat Iltarastit calendar)
 - Weather-aware recommendations (indoor/outdoor based on conditions)
 - Full athlete profile with HR zones, VO2max, thresholds from Polar Flow
 
+**Journal**
+- Daily mood tracking (1–5 scale)
+- Fatigue level logging
+- Nutrition status (good/ok/poor)
+- Free-text notes
+
 **Other**
 - Dark/light theme with system preference detection
+- Installable as PWA (Progressive Web App)
 - Instant client-side date navigation (no page reloads)
 - 7-day and monthly trend analysis with direction indicators
 - Editable athlete profile for personalized coaching
@@ -96,7 +108,8 @@ polar-coach/
 │   ├── profile.html    # Athlete profile editor
 │   └── session.html    # Exercise detail view
 ├── static/
-│   └── style.css       # Full CSS (dark/light themes)
+│   ├── style.css       # Full CSS (dark/light themes)
+│   └── manifest.json   # PWA manifest
 ├── data/               # Local data (gitignored)
 │   ├── exercises.json
 │   ├── profile.json

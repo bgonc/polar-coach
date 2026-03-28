@@ -42,6 +42,7 @@ DEFAULT_PROFILE = {
     "hr_zone_5": "167-176 bpm (95-100%)",
     "injuries": "",
     "notes": "",
+    "ai_model": "gemini-3-flash",
 }
 
 

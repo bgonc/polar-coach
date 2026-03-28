@@ -136,6 +136,26 @@ Your plans must:
 - Add a weekly focus note and total volume target"""
 
 
+AI_MODELS = {
+    "gemini-3-flash": {"id": "google/gemini-3-flash-preview", "name": "Gemini 3 Flash", "tier": "Best value"},
+    "gemini-2.5-flash": {"id": "google/gemini-2.5-flash", "name": "Gemini 2.5 Flash", "tier": "Budget"},
+    "claude-sonnet": {"id": "anthropic/claude-sonnet-4.6", "name": "Claude Sonnet 4.6", "tier": "Best quality"},
+    "grok-4-fast": {"id": "x-ai/grok-4-fast", "name": "Grok 4 Fast", "tier": "Cheap"},
+    "deepseek-v3": {"id": "deepseek/deepseek-v3.2", "name": "DeepSeek V3.2", "tier": "Cheap"},
+    "gpt-5.4-nano": {"id": "openai/gpt-5.4-nano", "name": "GPT-5.4 Nano", "tier": "Budget"},
+}
+
+DEFAULT_MODEL = "gemini-3-flash"
+
+
+def _get_model_id():
+    from local_data import get_profile
+    p = get_profile()
+    key = p.get("ai_model", DEFAULT_MODEL)
+    model = AI_MODELS.get(key, AI_MODELS[DEFAULT_MODEL])
+    return model["id"]
+
+
 def _get_client():
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
@@ -219,7 +239,7 @@ def get_ai_advice(sleep_data, recharge_data, exercises, hr_data, coaching_analys
     user_prompt = prompt or "Based on all my data and today's weather, give me today's training recommendation. Should I train hard, go moderate, easy, or rest? Give me a specific workout."
 
     response = client.chat.completions.create(
-        model="google/gemini-2.0-flash-001",
+        model=_get_model_id(),
         messages=[
             {"role": "system", "content": _system_prompt()},
             {"role": "user", "content": f"Today is {datetime.now().strftime('%A, %B %d, %Y')}.\n\n{context}\n\n{user_prompt}"},
@@ -238,7 +258,7 @@ def generate_training_plan(sleep_data, recharge_data, exercises, coaching_analys
     goal_text = goal or "running endurance and home gym strength"
 
     response = client.chat.completions.create(
-        model="google/gemini-2.0-flash-001",
+        model=_get_model_id(),
         messages=[
             {"role": "system", "content": _plan_prompt()},
             {"role": "user", "content": f"Today is {datetime.now().strftime('%A, %B %d, %Y')}.\n\n{context}\n\nCreate a weekly training plan starting today. Goal: {goal_text}."},
@@ -300,7 +320,7 @@ Format the plan as:
 Be specific with HR zones, paces, and progressions based on the athlete's physiology data."""
 
     response = client.chat.completions.create(
-        model="google/gemini-2.0-flash-001",
+        model=_get_model_id(),
         messages=[
             {"role": "system", "content": _plan_prompt()},
             {"role": "user", "content": prompt},
@@ -318,7 +338,7 @@ def _extract_schedule(client, plan_text):
     """Ask AI to extract a JSON schedule from the plan text."""
     try:
         response = client.chat.completions.create(
-            model="google/gemini-2.0-flash-001",
+            model=_get_model_id(),
             messages=[
                 {"role": "system", "content": "Extract the training schedule from the plan into a JSON array. Each item must have: date (YYYY-MM-DD), type (run/strength/rest/orienteering), title (short 2-4 word summary), duration (e.g. '45min'). Output ONLY valid JSON, no markdown, no explanation."},
                 {"role": "user", "content": plan_text},
@@ -367,7 +387,7 @@ Based on today's recovery data (sleep, HRV, ANS charge, stress) and the active t
     prompt += "\nBe concise — 2-3 paragraphs max. Lead with the decision."
 
     response = client.chat.completions.create(
-        model="google/gemini-2.0-flash-001",
+        model=_get_model_id(),
         messages=[
             {"role": "system", "content": _system_prompt()},
             {"role": "user", "content": prompt},
@@ -400,7 +420,7 @@ Write a concise weekly training report for the past 7 days. Include:
 Keep it to 4-6 paragraphs. Use specific numbers from the data. Be honest and constructive."""
 
     response = client.chat.completions.create(
-        model="google/gemini-2.0-flash-001",
+        model=_get_model_id(),
         messages=[
             {"role": "system", "content": _system_prompt()},
             {"role": "user", "content": prompt},
