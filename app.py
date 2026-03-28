@@ -133,16 +133,16 @@ def callback():
     # Pull notifications to make new data available
     try:
         client.pull_notifications()
-    except Exception:
-        pass
+    except Exception as e:
+        app.logger.warning(f"Pull notifications failed: {e}")
 
     # Sync exercises via transactional flow
     try:
         synced = client.sync_exercises()
         if synced:
             _set_cached("synced_exercises", synced)
-    except Exception:
-        pass
+    except Exception as e:
+        app.logger.warning(f"Sync exercises failed: {e}")
 
     return redirect(url_for("dashboard"))
 
@@ -154,7 +154,10 @@ def dashboard(date=None):
         return redirect(url_for("index"))
 
     if date:
-        selected_date = datetime.strptime(date, "%Y-%m-%d")
+        try:
+            selected_date = datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            return redirect(url_for("dashboard"))
     else:
         selected_date = datetime.now()
 

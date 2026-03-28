@@ -232,13 +232,17 @@
                     {% endfor %}
                 </div>
                 {% endif %}
+                <div class="week-dots">
+                    <span class="week-dots-label">This week</span>
+                    <div class="week-dots-row" id="weekDots"></div>
+                </div>
             </div>
         </div>
         {% endif %}
 
         <div class="card">
-            <div class="card-label">Sessions</div>
-            <div id="sessionList" class="session-list">
+            <div class="card-label">Sessions {% if exercises|length > 5 %}<button class="toggle-form-btn" onclick="document.getElementById('sessionList').classList.toggle('sessions-expanded')">{{ exercises|length }}</button>{% endif %}</div>
+            <div id="sessionList" class="session-list sessions-compact">
                 {% if exercises %}
                 {% for e in exercises %}
                 <div class="session-item" data-date="{{ e.date }}" id="session-{{ e.id }}">
@@ -385,12 +389,15 @@ function updateScoreCards(ds) {
     // Readiness card
     const ring = document.getElementById('readinessRing');
     const rVal = document.getElementById('readinessVal');
+    const readCard = document.querySelector('.readiness-card');
     if (rd) {
         const pct = rd.score / 100;
         ring.style.strokeDasharray = (pct * 214) + ' 214';
         ring.style.stroke = `var(--${rd.color})`;
         rVal.textContent = rd.score;
         setPill('readinessPill', rd.label, rd.color);
+        readCard.style.borderColor = `var(--${rd.color})`;
+        readCard.style.borderLeftWidth = '3px';
         document.getElementById('dReadiness').textContent = rd.score + '/100';
         document.getElementById('dReadSleep').textContent = (sl ? sl.score : 0) + '/100';
         document.getElementById('dReadRecov').textContent = rc ? rc.ans_charge.toFixed(1) : '-';
@@ -887,6 +894,28 @@ function renderCalendar() {
 }
 function calNav(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCalendar(); }
 
+// Week activity dots
+function renderWeekDots() {
+    const el = document.getElementById('weekDots');
+    if (!el) return;
+    const now = new Date();
+    const dayOfWeek = (now.getDay() + 6) % 7; // Mon=0
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayOfWeek);
+    const days = ['M','T','W','T','F','S','S'];
+    let html = '';
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const ds = d.toISOString().slice(0, 10);
+        const done = exerciseDates.has(ds);
+        const isToday = ds === today;
+        html += `<div class="wd ${done ? 'done' : ''} ${isToday ? 'today' : ''}"><span class="wd-letter">${days[i]}</span></div>`;
+    }
+    el.innerHTML = html;
+}
+renderWeekDots();
+
 // Init
 setDate(currentDate);
 
@@ -1045,10 +1074,11 @@ async function createPlan() {
 }
 
 async function adjustPlan(reason) {
-    const r2 = reason || '';
+    let r2 = reason || '';
     if (!reason) {
         const input = prompt('Why do you need to adjust? (e.g. "feeling tired", "missed yesterday", or leave empty)');
         if (input === null) return;
+        r2 = input;
     }
     appendMsg('user', 'Adjust today\'s plan' + (r2 ? ': ' + r2 : ''));
     showTyping();
@@ -1093,7 +1123,7 @@ async function loadActivePlan() {
         const type = plan.type || 'general';
         const labels = {general:'General Fitness', running:'Running', race:'Race Goal', orienteering:'Orienteering'};
         const created = plan.created ? new Date(plan.created).toLocaleDateString() : '';
-        const planHtml = plan.plan_text ? fmtMd(esc(plan.plan_text)) : '';
+        const planHtml = plan.plan_text ? fmtMd(plan.plan_text) : '';
         el.innerHTML = `
             <div class="plan-active-header" onclick="document.getElementById('planContent').classList.toggle('expanded')">
                 <span class="plan-badge">${labels[type] || type}</span>

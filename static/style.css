@@ -115,6 +115,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .pill-dim { background: var(--bg2); color: var(--text3); }
 
 /* Readiness hero card */
+.readiness-card { transition: border-color 0.3s ease, border-left-width 0.3s ease; }
 .readiness-card .score-top { padding: 0.85rem; }
 .readiness-ring { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
 .readiness-ring svg { width: 100%; height: 100%; }
@@ -257,8 +258,22 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .sport-chip { font-size: 0.62rem; padding: 0.15rem 0.45rem; background: var(--bg2); border-radius: 10px; color: var(--text2); }
 .sport-chip b { color: var(--text); font-weight: 700; }
 
+/* Week activity dots */
+.week-dots { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+.week-dots-label { font-size: 0.58rem; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 0.3rem; }
+.week-dots-row { display: flex; gap: 0.3rem; }
+.wd { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg2); border: 2px solid var(--border); transition: all 0.2s; }
+.wd .wd-letter { font-size: 0.55rem; font-weight: 700; color: var(--text3); }
+.wd.done { background: var(--green-dim); border-color: var(--green); }
+.wd.done .wd-letter { color: var(--green); }
+.wd.today { border-color: var(--text2); }
+.wd.today .wd-letter { color: var(--text); }
+.wd.today.done { border-color: var(--green); }
+
 /* === Sessions === */
 .session-list { display: flex; flex-direction: column; gap: 0.35rem; }
+.sessions-compact .session-item:nth-child(n+6) { display: none; }
+.sessions-expanded .session-item:nth-child(n+6) { display: flex; }
 .session-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem; background: var(--bg2); border-radius: var(--r-sm); transition: background-color 0.2s; }
 .session-item:hover { background: var(--surface2); }
 .session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
