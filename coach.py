@@ -156,6 +156,16 @@ def compute_daily_scores(sleep_data, recharge_data):
             if date in stress_scores:
                 scores[date]["stress"] = stress_scores[date]
 
+    # Compute HRV 7-day averages for contributor calculation
+    hrv_by_date = {}
+    if recharge_data:
+        recharges = recharge_data.get("recharges", []) if isinstance(recharge_data, dict) else recharge_data
+        for r in recharges:
+            d = r.get("date", "")
+            hrv = r.get("heart_rate_variability_avg")
+            if d and hrv:
+                hrv_by_date[d] = hrv
+
     # Readiness = composite of sleep, recovery, stress
     for date, s in scores.items():
         sleep_pct = min(s.get("sleep", {}).get("score", 0), 100)  # 0-100
@@ -168,7 +178,55 @@ def compute_daily_scores(sleep_data, recharge_data):
 
         readiness = round(0.35 * sleep_pct + 0.35 * recovery_pct + 0.30 * stress_inv)
         label, color = _classify(readiness, READINESS_THRESHOLDS)
-        s["readiness"] = {"score": readiness, "label": label, "color": color}
+
+        # Calculate contributors
+        contributors = []
+
+        # Sleep score contribution (vs 70 baseline)
+        sleep_delta = round((sleep_pct - 70) * 0.35)
+        contributors.append({
+            "label": "Sleep quality" if sleep_delta >= 0 else "Poor sleep",
+            "value": f"{sleep_delta:+d}",
+            "color": "green" if sleep_delta >= 0 else "red",
+        })
+
+        # ANS charge contribution (vs 0 baseline)
+        ans_delta = round(ans * 1.75)  # maps -10..+10 to roughly -17..+17
+        contributors.append({
+            "label": "ANS recovery" if ans_delta >= 0 else "Low ANS charge",
+            "value": f"{ans_delta:+d}",
+            "color": "green" if ans_delta >= 0 else "red",
+        })
+
+        # Stress contribution (vs 50 baseline)
+        stress_delta = round((50 - stress) * 0.30)
+        if stress >= 60:
+            contributors.append({"label": "High stress", "value": f"{stress_delta:+d}", "color": "red"})
+        elif stress <= 30:
+            contributors.append({"label": "Low stress", "value": f"{stress_delta:+d}", "color": "green"})
+        else:
+            contributors.append({"label": "Stress level", "value": f"{stress_delta:+d}", "color": "blue"})
+
+        # HRV trend (vs 7-day average)
+        current_hrv = hrv_by_date.get(date)
+        if current_hrv:
+            sorted_dates = sorted(hrv_by_date.keys())
+            try:
+                idx = sorted_dates.index(date)
+            except ValueError:
+                idx = -1
+            if idx >= 1:
+                window = sorted_dates[max(0, idx - 7):idx]
+                avg_hrv = sum(hrv_by_date[d] for d in window) / len(window) if window else current_hrv
+                hrv_diff = round(current_hrv - avg_hrv)
+                if abs(hrv_diff) >= 2:
+                    contributors.append({
+                        "label": "HRV above avg" if hrv_diff > 0 else "HRV below avg",
+                        "value": f"{hrv_diff:+d}",
+                        "color": "green" if hrv_diff > 0 else "red",
+                    })
+
+        s["readiness"] = {"score": readiness, "label": label, "color": color, "contributors": contributors}
 
     return scores
 
@@ -403,6 +461,131 @@ def analyze_training(exercises, sleep_data, recharge_data, training_summary=None
         "recommendations": recommendations,
         "info": info,
     }
+
+
+# ========== Training Benefit Tags ==========
+
+def classify_session(duration_min, avg_hr, max_hr, sport, profile):
+    """Classify a training session into a benefit tag based on HR zones and duration."""
+    aero = int(profile.get("aerobic_threshold", 132))
+    anaero = int(profile.get("anaerobic_threshold", 158))
+
+    strength_keywords = ("strength", "gym", "hiit", "yoga")
+    is_strength = sport and any(k in sport.lower() for k in strength_keywords)
+
+    if not avg_hr or avg_hr == 0:
+        if is_strength:
+            return "HIIT" if sport and "hiit" in sport.lower() else "Strength"
+        return "Easy Endurance" if duration_min >= 30 else "Recovery Run"
+
+    if is_strength:
+        return "HIIT" if sport and "hiit" in sport.lower() else "Strength"
+
+    # HR-based classification
+    if avg_hr >= anaero:
+        return "HIIT"
+    elif avg_hr >= aero + (anaero - aero) * 0.5:
+        return "Tempo"
+    elif avg_hr >= aero:
+        if duration_min >= 60:
+            return "Base Building"
+        return "Tempo"
+    elif avg_hr >= aero * 0.85:
+        if duration_min >= 45:
+            return "Base Building"
+        return "Easy Endurance"
+    else:
+        return "Recovery Run"
+
+
+# ========== Running Pace Zones ==========
+
+def _parse_pace(pace_str):
+    """Parse pace string like '05:14 min/km' to total seconds per km."""
+    clean = pace_str.replace("min/km", "").strip()
+    parts = clean.split(":")
+    return int(parts[0]) * 60 + int(parts[1])
+
+
+def _format_pace(seconds):
+    """Format seconds per km as 'M:SS'."""
+    m = int(seconds) // 60
+    s = int(seconds) % 60
+    return f"{m}:{s:02d}"
+
+
+def get_pace_zones(profile):
+    """Calculate 5 pace zones from MAS pace.
+
+    MAS pace is the fastest sustainable pace (100% MAS).
+    Slower paces = higher % of MAS pace (takes longer per km).
+    """
+    mas_str = profile.get("mas_pace", "05:14 min/km")
+    mas_sec = _parse_pace(mas_str)
+
+    zones = [
+        {"zone": 1, "name": "Easy", "min_pct": 130, "max_pct": 145,
+         "min_pace": _format_pace(mas_sec * 1.30), "max_pace": _format_pace(mas_sec * 1.45)},
+        {"zone": 2, "name": "Moderate", "min_pct": 110, "max_pct": 130,
+         "min_pace": _format_pace(mas_sec * 1.10), "max_pace": _format_pace(mas_sec * 1.30)},
+        {"zone": 3, "name": "Tempo", "min_pct": 100, "max_pct": 110,
+         "min_pace": _format_pace(mas_sec * 1.00), "max_pace": _format_pace(mas_sec * 1.10)},
+        {"zone": 4, "name": "Threshold", "min_pct": 95, "max_pct": 100,
+         "min_pace": _format_pace(mas_sec * 0.95), "max_pace": _format_pace(mas_sec * 1.00)},
+        {"zone": 5, "name": "Speed", "min_pct": 85, "max_pct": 95,
+         "min_pace": _format_pace(mas_sec * 0.85), "max_pace": _format_pace(mas_sec * 0.95)},
+    ]
+    return zones
+
+
+# ========== Race Predictor ==========
+
+def predict_race_times(profile):
+    """Predict race times using VO2max with Riegel formula.
+
+    Uses a reference 5K time derived from VO2max, then applies
+    Riegel's formula: T2 = T1 * (D2/D1)^1.06
+    """
+    vo2max = float(profile.get("vo2max", 40))
+
+    # Estimate 5K time from VO2max using Jack Daniels' approximation
+    # VO2max ~= 0.8 + 0.1894393 * S + 0.0120916 * S^2 ... simplified:
+    # For VO2max 40, approximate 5K ~ 27:00 (1620s)
+    # Using: speed_m_min = (vo2max - 3.5) / 0.2  (very rough)
+    # Better: use inverse of Daniels VDOT table approximation
+    # T_5k (min) ≈ 40.3 - 0.38 * VO2max + 0.00134 * VO2max^2 (fitted curve)
+    t_5k_min = 65.0 - 0.95 * vo2max + 0.005 * vo2max ** 2
+    if t_5k_min < 12:
+        t_5k_min = 12  # floor for very high VO2max
+    t_5k_sec = t_5k_min * 60
+
+    distances = {
+        "5K": 5000,
+        "10K": 10000,
+        "Half Marathon": 21097.5,
+        "Marathon": 42195,
+    }
+
+    predictions = {}
+    for name, dist in distances.items():
+        # Riegel formula: T2 = T1 * (D2/D1)^1.06
+        time_sec = t_5k_sec * (dist / 5000) ** 1.06
+        hours = int(time_sec // 3600)
+        mins = int((time_sec % 3600) // 60)
+        secs = int(time_sec % 60)
+        if hours > 0:
+            formatted = f"{hours}:{mins:02d}:{secs:02d}"
+        else:
+            formatted = f"{mins}:{secs:02d}"
+        pace_sec = time_sec / (dist / 1000)
+        predictions[name] = {
+            "time": formatted,
+            "time_sec": round(time_sec),
+            "pace": _format_pace(pace_sec),
+            "distance_m": dist,
+        }
+
+    return predictions
 
 
 def _sleep_duration_hours(night):

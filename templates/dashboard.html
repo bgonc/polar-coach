@@ -56,6 +56,7 @@
                     <div class="detail-row"><span>Sleep contribution</span><span id="dReadSleep">-</span></div>
                     <div class="detail-row"><span>Recovery contribution</span><span id="dReadRecov">-</span></div>
                     <div class="detail-row"><span>Stress contribution</span><span id="dReadStress">-</span></div>
+                    <div id="readinessContributors" class="readiness-contributors"></div>
                 </div>
             </div>
 
@@ -118,6 +119,10 @@
                         <div class="stress-chart-label">Stress proxy (HR vs resting) &amp; Night HRV</div>
                         <canvas id="stressCanvas" width="300" height="90"></canvas>
                     </div>
+                    <div class="body-battery" id="bodyBatteryWrap" style="display:none">
+                        <div class="stress-chart-label">Body Battery (estimated)</div>
+                        <canvas id="bodyBatteryCanvas" width="300" height="70"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -158,6 +163,50 @@
             {% for i in coaching.info %}<div class="insight-item info">{{ i }}</div>{% endfor %}
         </div>
         {% endif %}
+
+        <!-- Journal -->
+        <div class="card card-journal">
+            <div class="card-label">Journal <button class="toggle-form-btn" onclick="toggleJournal()">+</button></div>
+            <div id="journalDisplay"></div>
+            <div id="journalForm" style="display:none">
+                <div class="journal-field-label">Mood</div>
+                <div class="journal-mood-row" id="moodRow">
+                    <button class="journal-mood-btn" data-val="1" onclick="selectMood(1)">1<br><span class="mood-face">😫</span></button>
+                    <button class="journal-mood-btn" data-val="2" onclick="selectMood(2)">2<br><span class="mood-face">😕</span></button>
+                    <button class="journal-mood-btn" data-val="3" onclick="selectMood(3)">3<br><span class="mood-face">😐</span></button>
+                    <button class="journal-mood-btn" data-val="4" onclick="selectMood(4)">4<br><span class="mood-face">🙂</span></button>
+                    <button class="journal-mood-btn" data-val="5" onclick="selectMood(5)">5<br><span class="mood-face">😁</span></button>
+                </div>
+                <div class="journal-field-label">Fatigue</div>
+                <div class="journal-mood-row" id="fatigueRow">
+                    <button class="journal-mood-btn" data-val="1" onclick="selectFatigue(1)">1<br><span class="mood-face">🥱</span></button>
+                    <button class="journal-mood-btn" data-val="2" onclick="selectFatigue(2)">2<br><span class="mood-face">😮‍💨</span></button>
+                    <button class="journal-mood-btn" data-val="3" onclick="selectFatigue(3)">3<br><span class="mood-face">😐</span></button>
+                    <button class="journal-mood-btn" data-val="4" onclick="selectFatigue(4)">4<br><span class="mood-face">💪</span></button>
+                    <button class="journal-mood-btn" data-val="5" onclick="selectFatigue(5)">5<br><span class="mood-face">⚡</span></button>
+                </div>
+                <div class="journal-field-label">Nutrition</div>
+                <div class="journal-mood-row" id="nutritionRow">
+                    <button class="journal-mood-btn nutr-btn" data-val="poor" onclick="selectNutrition('poor')">Poor</button>
+                    <button class="journal-mood-btn nutr-btn" data-val="ok" onclick="selectNutrition('ok')">OK</button>
+                    <button class="journal-mood-btn nutr-btn" data-val="good" onclick="selectNutrition('good')">Good</button>
+                </div>
+                <textarea id="journalNotes" class="form-input" rows="2" placeholder="Notes..." style="margin-top:0.4rem;width:100%"></textarea>
+                <button class="btn-log" onclick="saveJournal()" style="margin-top:0.4rem">Save</button>
+            </div>
+        </div>
+
+        <!-- Pace Zones -->
+        <div id="paceZonesCard" class="card" style="display:none">
+            <div class="card-label">Running Pace Zones</div>
+            <div id="paceZonesList"></div>
+        </div>
+
+        <!-- Race Predictions -->
+        <div id="racePredCard" class="card" style="display:none">
+            <div class="card-label">Race Predictions</div>
+            <div id="raceGrid" class="race-grid"></div>
+        </div>
     </div>
 
     <!-- ========== CENTER: Training ========== -->
@@ -236,6 +285,10 @@
                     <span class="week-dots-label">This week</span>
                     <div class="week-dots-row" id="weekDots"></div>
                 </div>
+                <div class="volume-chart" id="volumeChartWrap" style="display:none">
+                    <span class="week-dots-label">Weekly Volume (8 weeks)</span>
+                    <canvas id="volumeCanvas" width="280" height="70"></canvas>
+                </div>
             </div>
         </div>
         {% endif %}
@@ -248,7 +301,7 @@
                 <div class="session-item" data-date="{{ e.date }}" id="session-{{ e.id }}">
                     <div class="session-dot {% if e.source == 'manual' %}manual{% endif %}"></div>
                     <div class="session-info">
-                        <div class="session-sport">{{ e.sport }}{% if e.source == 'manual' %} <span class="manual-tag">manual</span>{% endif %}</div>
+                        <div class="session-sport">{{ e.sport }}{% if e.training_benefit %} <span class="benefit-tag benefit-{{ e.training_benefit|lower|replace(' ', '-') }}">{{ e.training_benefit }}</span>{% endif %}{% if e.source == 'manual' %} <span class="manual-tag">manual</span>{% endif %}</div>
                         <div class="session-sub">{{ e.date }} &middot; {{ e.duration }}{% if e.distance_km %} &middot; {{ "%.1f"|format(e.distance_km) }}km{% endif %}{% if e.calories %} &middot; {{ e.calories }} cal{% endif %}</div>
                     </div>
                     {% if e.source == 'manual' %}
@@ -316,6 +369,7 @@
                 <button class="chip" onclick="adjustPlan()">Adjust Plan</button>
                 <button class="chip" onclick="getAdvice('How is my recovery?')">Recovery</button>
                 <button class="chip" onclick="getAdvice('Show me upcoming orienteering events and suggest which to attend')">Events</button>
+                <button class="chip" onclick="getWeeklyReport()">Weekly Report</button>
                 <button class="chip chip-danger" id="stopBtn" onclick="stopAI()" style="display:none">Stop</button>
                 <button class="chip chip-clear" onclick="clearChat()">Clear</button>
             </div>
@@ -362,6 +416,7 @@ function setDate(ds) {
     updateScoreCards(ds);
     updatePlanDay(ds);
     fetchHR(ds);
+    loadJournal(ds);
     renderCalendar();
     history.replaceState(null, '', ds === today ? '/dashboard' : '/dashboard/' + ds);
 }
@@ -402,12 +457,28 @@ function updateScoreCards(ds) {
         document.getElementById('dReadSleep').textContent = (sl ? sl.score : 0) + '/100';
         document.getElementById('dReadRecov').textContent = rc ? rc.ans_charge.toFixed(1) : '-';
         document.getElementById('dReadStress').textContent = st ? (100 - st.stress_score) + '/100' : '-';
+        // Render readiness contributors
+        const contEl = document.getElementById('readinessContributors');
+        if (rd.contributors && rd.contributors.length) {
+            contEl.innerHTML = rd.contributors.map(c => {
+                const val = parseInt(c.value);
+                const barW = Math.min(Math.abs(val) * 3, 60);
+                return `<div class="contributor-row">
+                    <span class="contributor-label">${esc(c.label)}</span>
+                    <span class="contributor-bar-wrap">
+                        <span class="contributor-bar contributor-${c.color}" style="width:${barW}px"></span>
+                    </span>
+                    <span class="contributor-val contributor-${c.color}">${c.value}</span>
+                </div>`;
+            }).join('');
+        } else { contEl.innerHTML = ''; }
     } else {
         ring.style.strokeDasharray = '0 214';
         ring.style.stroke = 'var(--border2)';
         rVal.textContent = '-';
         setPill('readinessPill', 'No data', '');
         ['dReadiness','dReadSleep','dReadRecov','dReadStress'].forEach(id => document.getElementById(id).textContent = '-');
+        document.getElementById('readinessContributors').innerHTML = '';
     }
 
     // Sleep card
@@ -440,8 +511,9 @@ function updateScoreCards(ds) {
         ['dAns','dHrv','dRhr','dBreath'].forEach(id => document.getElementById(id).textContent = '-');
     }
 
-    // Stress chart
+    // Stress chart + body battery
     drawStressChart(ds);
+    drawBodyBattery(ds);
 
     // Stress card
     if (st) {
@@ -1170,5 +1242,291 @@ function updatePlanDay(ds) {
 
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmtMd(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^### (.*$)/gm,'<h4>$1</h4>').replace(/^## (.*$)/gm,'<h3>$1</h3>').replace(/^- (.*$)/gm,'<li>$1</li>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');}
+
+// ===== Journal =====
+let journalMood = 3, journalFatigue = 3, journalNutrition = 'ok';
+
+function toggleJournal() {
+    const f = document.getElementById('journalForm');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectMood(v) {
+    journalMood = v;
+    document.querySelectorAll('#moodRow .journal-mood-btn').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.val) === v));
+}
+function selectFatigue(v) {
+    journalFatigue = v;
+    document.querySelectorAll('#fatigueRow .journal-mood-btn').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.val) === v));
+}
+function selectNutrition(v) {
+    journalNutrition = v;
+    document.querySelectorAll('#nutritionRow .journal-mood-btn').forEach(b => b.classList.toggle('selected', b.dataset.val === v));
+}
+
+async function loadJournal(date) {
+    const display = document.getElementById('journalDisplay');
+    try {
+        const r = await fetch('/api/journal/' + date);
+        const d = await r.json();
+        if (d && d.date) {
+            const moodEmojis = ['','😫','😕','😐','🙂','😁'];
+            const fatEmojis = ['','🥱','😮‍💨','😐','💪','⚡'];
+            display.innerHTML = `<div class="journal-entry">
+                <div class="journal-row"><span>Mood</span><span>${moodEmojis[d.mood] || d.mood}</span></div>
+                <div class="journal-row"><span>Fatigue</span><span>${fatEmojis[d.fatigue] || d.fatigue}</span></div>
+                <div class="journal-row"><span>Nutrition</span><span>${d.nutrition}</span></div>
+                ${d.notes ? '<div class="journal-notes">' + esc(d.notes) + '</div>' : ''}
+            </div>`;
+            document.getElementById('journalForm').style.display = 'none';
+        } else {
+            display.innerHTML = '<div class="empty-state" style="padding:0.5rem 0"><span>No entry for this day</span></div>';
+        }
+    } catch(e) {
+        display.innerHTML = '';
+    }
+}
+
+async function saveJournal() {
+    const data = {
+        date: currentDate,
+        mood: journalMood,
+        fatigue: journalFatigue,
+        nutrition: journalNutrition,
+        notes: document.getElementById('journalNotes').value.trim(),
+    };
+    try {
+        await fetch('/api/journal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+        loadJournal(currentDate);
+    } catch(e) {}
+}
+
+// ===== Pace Zones =====
+async function loadPaceZones() {
+    try {
+        const r = await fetch('/api/pace-zones');
+        const zones = await r.json();
+        if (!zones || !zones.length) return;
+        const card = document.getElementById('paceZonesCard');
+        card.style.display = '';
+        const colors = ['#6bb7e0','#5eb85e','#f0ad4e','#ee7a35','#d9534f'];
+        document.getElementById('paceZonesList').innerHTML = zones.map((z, i) =>
+            `<div class="pace-zone-row" style="border-left-color:${colors[i]}">
+                <span class="pz-name">Z${z.zone} ${z.name}</span>
+                <span class="pz-pace">${z.min_pace} - ${z.max_pace}</span>
+            </div>`
+        ).join('');
+    } catch(e) {}
+}
+loadPaceZones();
+
+// ===== Race Predictions =====
+async function loadRacePredictions() {
+    try {
+        const r = await fetch('/api/race-predictions');
+        const preds = await r.json();
+        if (!preds || !Object.keys(preds).length) return;
+        const card = document.getElementById('racePredCard');
+        card.style.display = '';
+        const grid = document.getElementById('raceGrid');
+        grid.innerHTML = Object.entries(preds).map(([name, d]) =>
+            `<div class="race-item"><span class="race-dist">${name}</span><span class="race-time">${d.time}</span><span class="race-pace">${d.pace}/km</span></div>`
+        ).join('');
+    } catch(e) {}
+}
+loadRacePredictions();
+
+// ===== Weekly Volume Chart =====
+async function loadWeeklyVolumes() {
+    try {
+        const r = await fetch('/api/weekly-volumes');
+        const data = await r.json();
+        if (!data || !data.length) return;
+        const wrap = document.getElementById('volumeChartWrap');
+        if (!wrap) return;
+        wrap.style.display = '';
+        const canvas = document.getElementById('volumeCanvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        const w = rect.width, h = rect.height;
+        const pad = {top: 8, bottom: 16, left: 4, right: 4};
+        const plotW = w - pad.left - pad.right;
+        const plotH = h - pad.top - pad.bottom;
+        const weeks = data.slice().reverse(); // oldest first
+        const maxDur = Math.max(...weeks.map(w => w.duration_min), 1);
+        const barW = Math.min((plotW / weeks.length) - 4, 28);
+        const gap = (plotW - barW * weeks.length) / (weeks.length + 1);
+        const textCol = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim();
+
+        for (let i = 0; i < weeks.length; i++) {
+            const wk = weeks[i];
+            const barH = (wk.duration_min / maxDur) * plotH;
+            const x = pad.left + gap + i * (barW + gap);
+            const y = pad.top + plotH - barH;
+            const isCurrentWeek = i === weeks.length - 1;
+            ctx.fillStyle = isCurrentWeek ? 'var(--green)' : 'var(--blue)';
+            // Use computed style for canvas
+            ctx.fillStyle = isCurrentWeek
+                ? getComputedStyle(document.documentElement).getPropertyValue('--green').trim()
+                : getComputedStyle(document.documentElement).getPropertyValue('--blue').trim();
+            ctx.beginPath();
+            const r2 = 3;
+            ctx.moveTo(x, y + r2);
+            ctx.arcTo(x, y, x + barW, y, r2);
+            ctx.arcTo(x + barW, y, x + barW, y + barH, r2);
+            ctx.lineTo(x + barW, pad.top + plotH);
+            ctx.lineTo(x, pad.top + plotH);
+            ctx.closePath();
+            ctx.fill();
+            // Week label
+            ctx.fillStyle = textCol;
+            ctx.font = '8px Inter,sans-serif';
+            ctx.textAlign = 'center';
+            const wkLabel = wk.week_start ? wk.week_start.slice(5) : 'W' + (i+1);
+            ctx.fillText(wkLabel, x + barW/2, h - 2);
+        }
+    } catch(e) {}
+}
+loadWeeklyVolumes();
+
+// ===== Weekly Report =====
+async function getWeeklyReport() {
+    appendMsg('user', 'Generate my weekly training report.');
+    showTyping();
+    abortCtrl = new AbortController();
+    try {
+        const r = await fetch('/api/weekly-report', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: '{}',
+            signal: abortCtrl.signal,
+        });
+        const d = await r.json();
+        hideTyping();
+        appendMsg('ai', d.error ? 'Error: ' + d.error : d.report);
+    } catch(e) {
+        hideTyping();
+        if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message);
+    }
+    abortCtrl = null;
+}
+
+// ===== Body Battery =====
+function drawBodyBattery(ds) {
+    const canvas = document.getElementById('bodyBatteryCanvas');
+    const wrap = document.getElementById('bodyBatteryWrap');
+    if (!canvas || !wrap) return;
+    const hrSamples = hrCache[ds];
+    if (!hrSamples || !hrSamples.length) { wrap.style.display = 'none'; return; }
+
+    // Compute resting HR from recharge data or minimum HR
+    const rech = allRecharge[ds];
+    const restingHR = rech ? rech.heart_rate_avg : Math.min(...hrSamples.filter(s => s.heart_rate > 0).map(s => s.heart_rate));
+    if (!restingHR) { wrap.style.display = 'none'; return; }
+
+    // Determine sleep window
+    const sl = allSleep[ds];
+    let sleepStart = 0, sleepEnd = 420; // defaults: midnight to 7am
+    if (sl && sl.sleep_start_time && sl.sleep_end_time) {
+        const sm = isoToMin(sl.sleep_start_time);
+        const em = isoToMin(sl.sleep_end_time);
+        if (sm !== null) sleepStart = sm > 720 ? sm : 0;
+        if (em !== null) sleepEnd = em;
+    }
+
+    // Build battery level: 1-min resolution
+    const battery = new Array(1440).fill(null);
+    let level = 100;
+    // Build a map of HR per minute
+    const hrByMin = {};
+    for (const s of hrSamples) {
+        if (s.heart_rate > 0 && s.sample_time) {
+            hrByMin[timeToMin(s.sample_time)] = s.heart_rate;
+        }
+    }
+
+    for (let m = 0; m < 1440; m++) {
+        const hr = hrByMin[m];
+        if (hr) {
+            const isSleep = (sleepStart > sleepEnd)
+                ? (m >= sleepStart || m < sleepEnd)
+                : (m >= sleepStart && m < sleepEnd);
+            if (isSleep) {
+                // Recharge: lower HR = faster recharge
+                const rechargeRate = Math.max(0, (restingHR + 10 - hr) / restingHR) * 0.15;
+                level = Math.min(100, level + rechargeRate);
+            } else {
+                // Drain: higher HR above resting = faster drain
+                const drainRate = Math.max(0, (hr - restingHR) / restingHR) * 0.12;
+                level = Math.max(0, level - drainRate);
+            }
+        }
+        battery[m] = level;
+    }
+
+    // Draw
+    wrap.style.display = '';
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    const w = rect.width, h = rect.height;
+    const pad = {top: 5, right: 5, bottom: 16, left: 25};
+    const plotW = w - pad.left - pad.right;
+    const plotH = h - pad.top - pad.bottom;
+
+    function xPos(m) { return pad.left + (m / 1440) * plotW; }
+    function yPos(v) { return pad.top + (1 - v / 100) * plotH; }
+
+    // Fill gradient
+    const gr = ctx.createLinearGradient(0, pad.top, 0, h - pad.bottom);
+    gr.addColorStop(0, 'rgba(0,214,143,0.2)');
+    gr.addColorStop(1, 'rgba(0,214,143,0)');
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), h - pad.bottom);
+    for (let m = 0; m < 1440; m++) {
+        if (battery[m] !== null) ctx.lineTo(xPos(m), yPos(battery[m]));
+    }
+    ctx.lineTo(xPos(1439), h - pad.bottom);
+    ctx.closePath();
+    ctx.fill();
+
+    // Line
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--green').trim();
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    let started = false;
+    for (let m = 0; m < 1440; m++) {
+        if (battery[m] !== null) {
+            if (!started) { ctx.moveTo(xPos(m), yPos(battery[m])); started = true; }
+            else ctx.lineTo(xPos(m), yPos(battery[m]));
+        }
+    }
+    ctx.stroke();
+
+    // Y axis
+    const textCol = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim();
+    ctx.fillStyle = textCol;
+    ctx.font = '8px Inter,sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('100', pad.left - 3, yPos(100) + 3);
+    ctx.fillText('50', pad.left - 3, yPos(50) + 3);
+    ctx.fillText('0', pad.left - 3, yPos(0) + 3);
+
+    // X axis
+    ctx.textAlign = 'center';
+    for (let hour = 0; hour <= 24; hour += 6) {
+        ctx.fillText(String(hour).padStart(2, '0'), xPos(hour * 60), h - 2);
+    }
+}
 </script>
 {% endblock %}

@@ -9,6 +9,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 EXERCISES_FILE = os.path.join(DATA_DIR, "exercises.json")
 PROFILE_FILE = os.path.join(DATA_DIR, "profile.json")
 PLAN_FILE = os.path.join(DATA_DIR, "training_plan.json")
+JOURNAL_FILE = os.path.join(DATA_DIR, "journal.json")
 
 DEFAULT_PROFILE = {
     "name": "Bruno Goncalves",
@@ -167,6 +168,88 @@ def save_plan(plan):
 def delete_plan():
     if os.path.exists(PLAN_FILE):
         os.remove(PLAN_FILE)
+
+
+# ========== Journal ==========
+
+def _load_journals():
+    if not os.path.exists(JOURNAL_FILE):
+        return []
+    with open(JOURNAL_FILE) as f:
+        return json.load(f)
+
+
+def _save_journals(data):
+    _ensure_dir()
+    with open(JOURNAL_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+
+def add_journal(date, mood, fatigue, nutrition, notes=""):
+    """Add a journal entry. mood/fatigue are 1-5, nutrition is good/ok/poor."""
+    journals = _load_journals()
+    entry = {
+        "date": date,
+        "mood": max(1, min(5, int(mood))),
+        "fatigue": max(1, min(5, int(fatigue))),
+        "nutrition": nutrition if nutrition in ("good", "ok", "poor") else "ok",
+        "notes": notes,
+        "created": datetime.now().isoformat(),
+    }
+    # Replace existing entry for the same date
+    journals = [j for j in journals if j["date"] != date]
+    journals.append(entry)
+    journals.sort(key=lambda j: j["date"], reverse=True)
+    _save_journals(journals)
+    return entry
+
+
+def get_journals():
+    return _load_journals()
+
+
+def get_journal(date):
+    for j in _load_journals():
+        if j["date"] == date:
+            return j
+    return None
+
+
+# ========== Weekly Volumes ==========
+
+def get_weekly_volumes(exercises, weeks=8):
+    """Return a list of {week_start, sessions, duration_min, distance_km} for the last N weeks."""
+    now = datetime.now().date()
+    # Find the Monday of the current week
+    current_monday = now - timedelta(days=now.weekday())
+
+    result = []
+    for i in range(weeks):
+        week_start = current_monday - timedelta(weeks=i)
+        week_end = week_start + timedelta(days=7)
+        sessions = 0
+        duration_min = 0
+        distance_km = 0.0
+
+        for e in exercises:
+            try:
+                d = datetime.strptime(e.get("date", "")[:10], "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                continue
+            if week_start <= d < week_end:
+                sessions += 1
+                duration_min += e.get("duration_min", 0) or 0
+                distance_km += e.get("distance_km", 0) or 0
+
+        result.append({
+            "week_start": week_start.isoformat(),
+            "sessions": sessions,
+            "duration_min": duration_min,
+            "distance_km": round(distance_km, 1),
+        })
+
+    result.reverse()  # oldest first
+    return result
 
 
 # ========== Orienteering Events ==========

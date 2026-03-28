@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for, jsonify
 
-from coach import analyze_training, compute_daily_scores, compute_summaries
+from coach import analyze_training, compute_daily_scores, compute_summaries, classify_session
 from ai_coach import get_ai_advice, generate_training_plan
 from polar_client import PolarClient
 from local_data import (
@@ -16,6 +16,7 @@ from local_data import (
     delete_exercise as local_delete_exercise, get_training_summary,
     get_profile, save_profile,
     get_active_plan, save_plan, delete_plan, get_orienteering_events,
+    add_journal, get_journals, get_journal, get_weekly_volumes,
 )
 
 load_dotenv()
@@ -234,6 +235,20 @@ def dashboard(date=None):
 
     # Sort all exercises by date descending
     exercise_list.sort(key=lambda e: e.get("date", ""), reverse=True)
+
+    # Attach training benefit tags
+    profile = get_profile()
+    for ex in exercise_list:
+        dur = 0
+        d_str = ex.get("duration", "")
+        if "h" in d_str:
+            parts = d_str.replace("m", "").split("h")
+            dur = int(parts[0].strip()) * 60 + int(parts[1].strip()) if len(parts) == 2 and parts[1].strip() else int(parts[0].strip()) * 60
+        elif "m" in d_str:
+            dur = int(d_str.replace("m", "").strip())
+        avg = ex.get("avg_hr", 0)
+        avg = int(avg) if str(avg).isdigit() else 0
+        ex["training_benefit"] = classify_session(dur, avg, 0, ex.get("sport", ""), profile)
 
     training_summary = get_training_summary(local_exercises)
     coaching = analyze_training(exercises, sleep_data, recharge_data, training_summary)
@@ -564,6 +579,81 @@ def api_adjust_plan():
         if adjustment is None:
             return jsonify({"error": "API key not set"}), 500
         return jsonify({"adjustment": adjustment})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/journal", methods=["GET"])
+def api_get_journals():
+    return jsonify(get_journals())
+
+
+@app.route("/api/journal", methods=["POST"])
+def api_add_journal():
+    if "access_token" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    data = request.json
+    entry = add_journal(
+        date=data.get("date", datetime.now().strftime("%Y-%m-%d")),
+        mood=data.get("mood", 3),
+        fatigue=data.get("fatigue", 3),
+        nutrition=data.get("nutrition", "ok"),
+        notes=data.get("notes", ""),
+    )
+    return jsonify(entry)
+
+
+@app.route("/api/journal/<date>")
+def api_get_journal(date):
+    entry = get_journal(date)
+    if entry:
+        return jsonify(entry)
+    return jsonify(None)
+
+
+@app.route("/api/race-predictions")
+def api_race_predictions():
+    from coach import predict_race_times
+    profile = get_profile()
+    return jsonify(predict_race_times(profile))
+
+
+@app.route("/api/pace-zones")
+def api_pace_zones():
+    from coach import get_pace_zones
+    profile = get_profile()
+    return jsonify(get_pace_zones(profile))
+
+
+@app.route("/api/weekly-volumes")
+def api_weekly_volumes():
+    local_exercises = local_get_exercises()
+    return jsonify(get_weekly_volumes(local_exercises))
+
+
+@app.route("/api/weekly-report", methods=["POST"])
+def api_weekly_report():
+    if "access_token" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    from ai_coach import generate_weekly_report
+
+    client = get_client()
+    errors = []
+    sleep_data = _fetch_with_cache("sleep", client.get_sleep, errors, "sleep")
+    recharge_data = _fetch_with_cache("recharge", client.get_nightly_recharge, errors, "recharge")
+    local_exercises = local_get_exercises()
+    training_sum = get_training_summary(local_exercises)
+    all_exercises = (_fetch_with_cache("exercises", client.get_exercises, errors, "exercises") or []) + local_exercises
+    coaching = analyze_training(all_exercises, sleep_data, recharge_data, training_sum)
+    loc = session.get("location", "")
+
+    try:
+        report = generate_weekly_report(sleep_data, recharge_data, all_exercises, coaching, training_sum, loc)
+        if report is None:
+            return jsonify({"error": "OPENROUTER_API_KEY not set. Add it to .env"}), 500
+        return jsonify({"report": report})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

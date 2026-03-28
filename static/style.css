@@ -125,8 +125,8 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .score-mini { font-size: 1.05rem; font-weight: 800; color: var(--text2); flex-shrink: 0; }
 
 .score-detail { max-height: 0; overflow: hidden; transition: max-height 0.25s ease, padding 0.25s ease; padding: 0 0.85rem; }
-.score-card.expanded .score-detail { max-height: 220px; padding: 0 0.85rem 0.65rem; }
-.score-card.expanded .score-detail-stress { max-height: 400px; }
+.score-card.expanded .score-detail { max-height: 350px; padding: 0 0.85rem 0.65rem; }
+.score-card.expanded .score-detail-stress { max-height: 500px; }
 .score-card.expanded { border-color: var(--border2); }
 
 .detail-row { display: flex; justify-content: space-between; padding: 0.28rem 0; border-bottom: 1px solid var(--border); font-size: 0.7rem; }
@@ -432,6 +432,84 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .pf-status.saved { color: var(--green); }
 .pf-status.error { color: var(--red); }
 
+/* === Readiness Contributors === */
+.readiness-contributors { margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px solid var(--border); }
+.contributor-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.15rem 0; font-size: 0.65rem; }
+.contributor-label { flex: 1; color: var(--text2); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contributor-bar-wrap { width: 60px; height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+.contributor-bar { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+.contributor-green { background: var(--green); color: var(--green); }
+.contributor-red { background: var(--red); color: var(--red); }
+.contributor-blue { background: var(--blue); color: var(--blue); }
+.contributor-val { font-weight: 700; font-size: 0.62rem; min-width: 28px; text-align: right; }
+
+/* === Journal === */
+.card-journal { padding: 0.75rem; }
+.journal-field-label { font-size: 0.6rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin: 0.4rem 0 0.2rem; }
+.journal-field-label:first-child { margin-top: 0; }
+.journal-mood-row { display: flex; gap: 0.3rem; }
+.journal-mood-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0.35rem 0.2rem; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--r-sm); color: var(--text2); font-size: 0.62rem; font-weight: 600;
+    font-family: inherit; cursor: pointer; transition: all 0.15s; min-width: 0;
+}
+.journal-mood-btn:hover { border-color: var(--border2); color: var(--text); }
+.journal-mood-btn.selected { background: var(--accent); border-color: var(--accent); color: white; }
+.journal-mood-btn .mood-face { font-size: 1rem; line-height: 1.2; }
+.journal-mood-btn.nutr-btn { flex-direction: row; font-size: 0.68rem; padding: 0.35rem 0.5rem; }
+.journal-entry { display: flex; flex-direction: column; gap: 0.2rem; }
+.journal-row { display: flex; justify-content: space-between; padding: 0.2rem 0; font-size: 0.72rem; border-bottom: 1px solid var(--border); }
+.journal-row:last-child { border-bottom: none; }
+.journal-row span:first-child { color: var(--text2); }
+.journal-row span:last-child { font-weight: 700; }
+.journal-notes { font-size: 0.7rem; color: var(--text2); padding: 0.3rem 0; font-style: italic; }
+
+/* === Training Benefit Tags === */
+.benefit-tag {
+    font-size: 0.54rem; font-weight: 700; padding: 0.06rem 0.3rem; border-radius: 4px;
+    vertical-align: middle; margin-left: 0.2rem; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.benefit-tag.benefit-base-building,
+.benefit-tag.benefit-easy-endurance { background: var(--green-dim); color: var(--green); }
+.benefit-tag.benefit-tempo { background: var(--yellow-dim); color: var(--yellow); }
+.benefit-tag.benefit-recovery,
+.benefit-tag.benefit-recovery-run { background: var(--blue-dim); color: var(--blue); }
+.benefit-tag.benefit-hiit,
+.benefit-tag.benefit-speed-work { background: var(--red-dim); color: var(--red); }
+.benefit-tag.benefit-strength,
+.benefit-tag.benefit-strength-training { background: var(--purple-dim); color: var(--purple); }
+.benefit-tag.benefit-endurance { background: var(--green-dim); color: var(--green); }
+.benefit-tag.benefit-general { background: var(--bg2); color: var(--text3); }
+
+/* === Pace Zones === */
+.pace-zone-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.3rem 0.5rem; border-left: 3px solid var(--border2);
+    margin-bottom: 0.2rem; border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    background: var(--bg2); font-size: 0.72rem;
+}
+.pz-name { font-weight: 600; color: var(--text); }
+.pz-pace { color: var(--text2); font-weight: 500; font-size: 0.68rem; }
+
+/* === Race Predictions === */
+.race-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; }
+.race-item {
+    display: flex; flex-direction: column; padding: 0.45rem 0.55rem;
+    background: var(--bg2); border-radius: var(--r-sm);
+}
+.race-dist { font-size: 0.6rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+.race-time { font-size: 0.88rem; font-weight: 800; color: var(--text); }
+.race-pace { font-size: 0.62rem; color: var(--text2); }
+
+/* === Volume Chart === */
+.volume-chart { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+#volumeCanvas { width: 100%; height: 70px; display: block; }
+
+/* === Body Battery === */
+.body-battery { margin-top: 0.5rem; padding-top: 0.4rem; border-top: 1px solid var(--border); }
+#bodyBatteryCanvas { width: 100%; height: 70px; display: block; }
+
 /* Loading */
 .loading-overlay { position: fixed; inset: 0; background: rgba(8,9,12,0.7); backdrop-filter: blur(4px); z-index: 200; display: flex; align-items: center; justify-content: center; }
 .loading-overlay.hidden { display: none; }
@@ -484,6 +562,10 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 :root.light .navbar { background: var(--surface); border-color: var(--border); }
 :root.light .date-arrow, :root.light .sync-btn, :root.light .cal-nav { background: var(--surface); border-color: var(--border); }
 :root.light .date-label { background: var(--surface); border-color: var(--border); }
+:root.light .journal-mood-btn { background: var(--surface2); border-color: var(--border); }
+:root.light .journal-mood-btn.selected { background: var(--accent); border-color: var(--accent); color: white; }
+:root.light .pace-zone-row { background: var(--surface2); }
+:root.light .race-item { background: var(--surface2); }
 
 /* Responsive */
 @media (max-width: 1200px) {

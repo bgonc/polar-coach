@@ -376,6 +376,39 @@ Based on today's recovery data (sleep, HRV, ANS charge, stress) and the active t
     return response.choices[0].message.content
 
 
+def generate_weekly_report(sleep_data, recharge_data, exercises, coaching, training_sum, location=""):
+    """Ask the AI to summarize the past week of training and recovery."""
+    client = _get_client()
+    if not client:
+        return None
+
+    context = _build_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
+    profile = _get_athlete_profile()
+
+    prompt = f"""Today is {datetime.now().strftime('%A, %B %d, %Y')}.
+
+{profile}
+
+{context}
+
+Write a concise weekly training report for the past 7 days. Include:
+1. **Training Summary** — sessions completed, total volume, sport breakdown
+2. **Recovery & Sleep** — average sleep score, HRV trend, ANS charge pattern, stress levels
+3. **Key Observations** — what went well, what needs attention
+4. **Recommendations for Next Week** — adjust volume, focus areas, recovery priorities
+
+Keep it to 4-6 paragraphs. Use specific numbers from the data. Be honest and constructive."""
+
+    response = client.chat.completions.create(
+        model="google/gemini-2.0-flash-001",
+        messages=[
+            {"role": "system", "content": _system_prompt()},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return response.choices[0].message.content
+
+
 def _build_context(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, training_summary=None, location=""):
     """Build comprehensive context for the AI."""
     parts = []
