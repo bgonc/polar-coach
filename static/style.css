@@ -498,14 +498,14 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .pz-pace { color: var(--text2); font-weight: 500; font-size: 0.68rem; }
 
 /* === Race Predictions === */
-.race-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; }
+.race-grid { display: flex; gap: 0.25rem; }
 .race-item {
-    display: flex; flex-direction: column; padding: 0.45rem 0.55rem;
-    background: var(--bg2); border-radius: var(--r-sm);
+    flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0.35rem 0.25rem;
+    background: var(--bg2); border-radius: var(--r-sm); min-width: 0;
 }
-.race-dist { font-size: 0.6rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
-.race-time { font-size: 0.88rem; font-weight: 800; color: var(--text); }
-.race-pace { font-size: 0.62rem; color: var(--text2); }
+.race-dist { font-size: 0.52rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.03em; }
+.race-time { font-size: 0.72rem; font-weight: 800; color: var(--text); }
+.race-pace { font-size: 0.55rem; color: var(--text2); }
 
 /* === Volume Chart === */
 .volume-chart { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }

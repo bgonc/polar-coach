@@ -175,14 +175,8 @@
                 <button class="cal-nav" onclick="calNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg></button>
                 <span id="calMonth" class="cal-month"></span>
                 <button class="cal-nav" onclick="calNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></button>
+                <button class="cal-nav" onclick="toggleForm()" title="Log exercise" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
             </div>
-            <div class="cal-days"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-            <div id="calGrid" class="cal-grid"></div>
-            <div id="planDay" class="plan-day" style="display:none"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-label">Log Exercise <button class="toggle-form-btn" onclick="toggleForm()">+</button></div>
             <div id="addExForm" class="add-ex-form" style="display:none">
                 <div class="form-row">
                     <input type="date" id="exDate" class="form-input">
@@ -193,14 +187,37 @@
                     </select>
                 </div>
                 <div class="form-row">
-                    <input type="number" id="exDuration" placeholder="Duration (min)" class="form-input" min="1">
-                    <input type="number" id="exDistance" placeholder="Distance (km)" class="form-input" min="0" step="0.1">
+                    <input type="number" id="exDuration" placeholder="Min" class="form-input" min="1">
+                    <input type="number" id="exDistance" placeholder="Km" class="form-input" min="0" step="0.1">
+                    <input type="number" id="exCalories" placeholder="Cal" class="form-input" min="0">
                 </div>
-                <div class="form-row">
-                    <input type="number" id="exCalories" placeholder="Calories" class="form-input" min="0">
-                    <input type="number" id="exHR" placeholder="Avg HR" class="form-input" min="0">
+                <button class="btn-log" onclick="logExercise()">Log</button>
+            </div>
+            <div class="cal-days"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+            <div id="calGrid" class="cal-grid"></div>
+            <div id="planDay" class="plan-day" style="display:none"></div>
+        </div>
+
+        <!-- Sessions (between calendar and training summary) -->
+        <div class="card" id="sessionsCard" style="display:none">
+            <div class="card-label">Sessions <span id="sessionsDateLabel"></span></div>
+            <div id="sessionList" class="session-list">
+                {% if exercises %}
+                {% for e in exercises %}
+                <div class="session-item" data-date="{{ e.date }}" id="session-{{ e.id }}">
+                    <div class="session-dot {% if e.source == 'manual' %}manual{% endif %}"></div>
+                    <div class="session-info">
+                        <div class="session-sport">{{ e.sport }}{% if e.training_benefit %} <span class="benefit-tag benefit-{{ e.training_benefit|lower|replace(' ', '-') }}">{{ e.training_benefit }}</span>{% endif %}{% if e.source == 'manual' %} <span class="manual-tag">manual</span>{% endif %}</div>
+                        <div class="session-sub">{{ e.date }} &middot; {{ e.duration }}{% if e.distance_km %} &middot; {{ "%.1f"|format(e.distance_km) }}km{% endif %}{% if e.calories %} &middot; {{ e.calories }} cal{% endif %}</div>
+                    </div>
+                    {% if e.source == 'manual' %}
+                    <button class="session-del" onclick="deleteExercise('{{ e.id }}')" title="Delete">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                    {% endif %}
                 </div>
-                <button class="btn-log" onclick="logExercise()">Log Session</button>
+                {% endfor %}
+                {% endif %}
             </div>
         </div>
 
@@ -263,29 +280,6 @@
             </div>
         </div>
         {% endif %}
-
-        <!-- Sessions (hidden by default, shown on day click) -->
-        <div class="card" id="sessionsCard" style="display:none">
-            <div class="card-label">Sessions <span id="sessionsDateLabel"></span></div>
-            <div id="sessionList" class="session-list">
-                {% if exercises %}
-                {% for e in exercises %}
-                <div class="session-item" data-date="{{ e.date }}" id="session-{{ e.id }}">
-                    <div class="session-dot {% if e.source == 'manual' %}manual{% endif %}"></div>
-                    <div class="session-info">
-                        <div class="session-sport">{{ e.sport }}{% if e.training_benefit %} <span class="benefit-tag benefit-{{ e.training_benefit|lower|replace(' ', '-') }}">{{ e.training_benefit }}</span>{% endif %}{% if e.source == 'manual' %} <span class="manual-tag">manual</span>{% endif %}</div>
-                        <div class="session-sub">{{ e.date }} &middot; {{ e.duration }}{% if e.distance_km %} &middot; {{ "%.1f"|format(e.distance_km) }}km{% endif %}{% if e.calories %} &middot; {{ e.calories }} cal{% endif %}</div>
-                    </div>
-                    {% if e.source == 'manual' %}
-                    <button class="session-del" onclick="deleteExercise('{{ e.id }}')" title="Delete">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                {% endif %}
-            </div>
-        </div>
 
         <!-- Heart Rate -->
         <div id="hrCard" class="card" style="display:none">
