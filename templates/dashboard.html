@@ -1285,39 +1285,51 @@ function extractDayDetail(ds) {
     const raw = planText.textContent || '';
     if (!raw) return '';
 
-    // Find the day in the plan text
     const d = new Date(ds + 'T12:00:00');
     const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const dayAbbrs = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     const dayName = dayNames[d.getDay()];
     const dayAbbr = dayAbbrs[d.getDay()];
+    const dayNum = d.getDate();
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const monthDay = monthNames[d.getMonth()] + ' ' + d.getDate();
-    const monthDayAlt = monthNames[d.getMonth()] + ' ' + d.getDate();
-    const dateNum = ds.slice(8) + '.' + ds.slice(5,7);
+    const monthAbbr = monthNames[d.getMonth()];
 
-    // Try multiple patterns to find the day section
+    // Patterns to search (most specific first)
     const patterns = [
-        dayName,
-        dayAbbr + ' ' + monthDay,
-        dayAbbr,
-        dateNum,
-        ds,
+        dayName + ' ' + monthAbbr + ' ' + dayNum,           // "Thursday April 2"
+        dayName + ', ' + monthAbbr + ' ' + dayNum,           // "Thursday, April 2"
+        dayAbbr + ' ' + dayNum,                               // "Thu 2"
+        dayAbbr + ' ' + monthAbbr + ' ' + dayNum,            // "Thu Apr 2"
+        dayName + ' (' + monthAbbr,                            // "Thursday (Apr"
+        dayName,                                               // "Thursday"
+        ds.slice(8) + '.' + ds.slice(5,7),                    // "02.04"
+        ds.slice(5),                                           // "04-02"
     ];
 
-    const lines = raw.split('\n');
+    // Split by lines, also handle pipe-delimited tables
+    let text = raw.replace(/\|/g, '\n');
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
     for (const pattern of patterns) {
+        const pl = pattern.toLowerCase();
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].toLowerCase().includes(pattern.toLowerCase()) && lines[i].length < 100) {
-                // Found the day header — collect until next day header or empty section
-                let result = [];
-                for (let j = i; j < lines.length && j < i + 15; j++) {
-                    const line = lines[j].trim();
-                    if (j > i && /^(monday|tuesday|wednesday|thursday|friday|saturday|sunday|week\s*\d)/i.test(line)) break;
-                    if (line) result.push(line);
-                }
-                if (result.length > 1) return result.join('\n');
+            const ll = lines[i].toLowerCase();
+            if (!ll.includes(pl)) continue;
+
+            // Found a match — collect this line + following detail lines
+            let result = [lines[i]];
+            for (let j = i + 1; j < lines.length && j < i + 20; j++) {
+                const line = lines[j];
+                const lineLower = line.toLowerCase();
+                // Stop at next day header
+                if (dayAbbrs.some(a => lineLower.startsWith(a.toLowerCase() + ' ')) && /\d/.test(line.slice(4,6))) break;
+                if (dayNames.some(n => lineLower.startsWith(n.toLowerCase())) && line.length < 80) break;
+                if (/^week\s*\d/i.test(line)) break;
+                if (/^---/.test(line)) break;
+                if (/^weekly volume/i.test(line)) break;
+                result.push(line);
             }
+            if (result.length >= 1) return result.join('\n');
         }
     }
     return '';
