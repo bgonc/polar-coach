@@ -197,10 +197,9 @@
                 <div class="hero-item">
                     <span class="hero-item-icon">&#128694;</span>
                     <div class="hero-item-data">
-                        <span class="hero-item-val" id="heroSteps">-</span>
+                        <span><span class="hero-item-val" id="heroSteps">-</span> <span class="hero-item-goal" id="heroStepsGoal"></span></span>
                         <span class="hero-item-label">Steps</span>
                     </div>
-                    <span class="hero-item-pct" id="heroStepsPct"></span>
                 </div>
                 <div class="hero-item">
                     <span class="hero-item-icon">&#9889;</span>
@@ -208,7 +207,6 @@
                         <span class="hero-item-val" id="heroCalories">-</span>
                         <span class="hero-item-label">Calories</span>
                     </div>
-                    <span class="hero-item-pct" id="heroCalPct"></span>
                 </div>
                 <div class="hero-item">
                     <span class="hero-item-icon">&#128336;</span>
@@ -216,7 +214,6 @@
                         <span class="hero-item-val" id="heroActiveTime">-</span>
                         <span class="hero-item-label">Active</span>
                     </div>
-                    <span class="hero-item-pct" id="heroTimePct"></span>
                 </div>
                 <div class="hero-item">
                     <span class="hero-item-icon">&#128205;</span>
@@ -224,7 +221,6 @@
                         <span class="hero-item-val" id="heroDist">-</span>
                         <span class="hero-item-label">Distance</span>
                     </div>
-                    <span class="hero-item-pct" id="heroDistPct"></span>
                 </div>
             </div>
         </div>
@@ -1092,14 +1088,6 @@ function computeBioAge() {
 computeBioAge();
 
 // Update activity + extras on date change
-function setPct(id, val, goal) {
-    const el = document.getElementById(id);
-    if (!el || !val || !goal) { if (el) el.textContent = ''; return; }
-    const pct = Math.round(val / goal * 100);
-    el.textContent = pct + '%';
-    el.style.color = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--text3)' : 'var(--yellow)';
-}
-
 function updateActivity(ds) {
     const a = allActivity[ds];
     const card = document.getElementById('heroActivity');
@@ -1107,15 +1095,10 @@ function updateActivity(ds) {
     card.style.display = '';
 
     document.getElementById('heroSteps').textContent = a.steps.toLocaleString();
+    document.getElementById('heroStepsGoal').textContent = 'of 10,000';
     document.getElementById('heroCalories').textContent = a.calories.toLocaleString();
     document.getElementById('heroDist').textContent = a.distance ? (a.distance / 1000).toFixed(1) + ' km' : '-';
     document.getElementById('heroActiveTime').textContent = a.active_min > 0 ? fmtMin(a.active_min) : '-';
-
-    // Goals: 10k steps, 2400 cal, 30min active (WHO minimum), 6km
-    setPct('heroStepsPct', a.steps, 10000);
-    setPct('heroCalPct', a.calories, 2400);
-    setPct('heroTimePct', a.active_min, 30);
-    setPct('heroDistPct', a.distance / 1000, 6);
 }
 
 // Init

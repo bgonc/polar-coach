@@ -108,7 +108,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .hero-item-data { flex: 1; min-width: 0; }
 .hero-item-val { font-size: 0.88rem; font-weight: 800; color: var(--text); display: block; line-height: 1.1; }
 .hero-item-label { font-size: 0.55rem; color: var(--text3); font-weight: 500; }
-.hero-item-pct { font-size: 0.6rem; font-weight: 700; flex-shrink: 0; }
+.hero-item-goal { font-size: 0.62rem; color: var(--text3); font-weight: 400; }
 
 /* Cards */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 0.85rem; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
@@ -137,7 +137,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
 /* Readiness card */
 .readiness-card { transition: border-color 0.3s ease; border-width: 2px; }
-.readiness-bg { background: var(--green-dim); color: var(--green); }
+.readiness-bg { background: var(--yellow-dim); color: var(--yellow); }
 
 .score-mini { font-size: 1.05rem; font-weight: 800; color: var(--text2); flex-shrink: 0; }
 .stress-mini-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; flex-shrink: 0; }
@@ -423,7 +423,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .ai-msg { display: flex; gap: 0.4rem; }
 .ai-msg-ai { align-items: flex-start; }
 .ai-msg-user { justify-content: flex-end; }
-.ai-avatar { width: 24px; height: 24px; border-radius: 7px; background: linear-gradient(135deg, var(--purple), var(--blue)); display: flex; align-items: center; justify-content: center; font-size: 0.5rem; font-weight: 800; flex-shrink: 0; color: white; letter-spacing: 0.02em; }
+.ai-avatar { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; background: none; }
 .ai-bubble { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px 10px 10px 3px; padding: 0.5rem 0.65rem; font-size: 0.75rem; color: var(--text); line-height: 1.55; max-width: 100%; }
 .ai-bubble h3, .ai-bubble h4 { font-size: 0.8rem; color: var(--text); margin: 0.5rem 0 0.25rem; }
 .ai-bubble h3:first-child, .ai-bubble h4:first-child { margin-top: 0; }
