@@ -144,15 +144,6 @@
                 </div>
             </div>
 
-            <!-- Daily Activity -->
-            <div class="card card-activity" id="activityCard" style="display:none">
-                <div class="activity-grid">
-                    <div class="activity-item"><span class="activity-val" id="actSteps">-</span><span class="activity-label">Steps</span></div>
-                    <div class="activity-item"><span class="activity-val" id="actCal">-</span><span class="activity-label">Calories</span></div>
-                    <div class="activity-item"><span class="activity-val" id="actDist">-</span><span class="activity-label">Distance</span></div>
-                    <div class="activity-item"><span class="activity-val" id="actTime">-</span><span class="activity-label">Active</span></div>
-                </div>
-            </div>
 
         </div>
 
@@ -197,6 +188,40 @@
 
     <!-- ========== CENTER: Training ========== -->
     <div class="col col-center">
+        <!-- Daily Activity Hero -->
+        <div class="card card-hero" id="heroActivity" style="display:none">
+            <div class="hero-row">
+                <div class="hero-ring-lg">
+                    <svg viewBox="0 0 80 80">
+                        <circle cx="40" cy="40" r="35" class="ring-track" stroke-width="6"/>
+                        <circle cx="40" cy="40" r="35" class="ring-progress" id="heroStepRing" stroke-width="6"/>
+                    </svg>
+                    <div class="hero-ring-center">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" style="color:var(--text3)"><path d="M13 4v16M7 4v16M17 13l4-9M3 13l4-9M7 20h6"/></svg>
+                        <span class="hero-steps" id="heroSteps">-</span>
+                        <span class="hero-steps-label">steps</span>
+                    </div>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        <span class="hero-stat-val" id="heroCalories">-</span>
+                        <span class="hero-stat-unit">cal</span>
+                    </div>
+                    <div class="hero-stat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span class="hero-stat-val" id="heroActiveTime">-</span>
+                        <span class="hero-stat-unit">active</span>
+                    </div>
+                    <div class="hero-stat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span class="hero-stat-val" id="heroDist">-</span>
+                        <span class="hero-stat-unit">km</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Log Exercise Form (hidden) -->
         <div id="addExForm" class="card add-ex-form" style="display:none">
             <div class="form-row">
@@ -1062,13 +1087,21 @@ computeBioAge();
 // Update activity + extras on date change
 function updateActivity(ds) {
     const a = allActivity[ds];
-    const card = document.getElementById('activityCard');
+    const card = document.getElementById('heroActivity');
     if (!a || !a.steps) { card.style.display = 'none'; return; }
     card.style.display = '';
-    document.getElementById('actSteps').textContent = a.steps.toLocaleString();
-    document.getElementById('actCal').textContent = a.calories || '-';
-    document.getElementById('actDist').textContent = a.distance ? (a.distance / 1000).toFixed(1) + 'km' : '-';
-    document.getElementById('actTime').textContent = a.active_min > 0 ? fmtMin(a.active_min) : '-';
+
+    document.getElementById('heroSteps').textContent = a.steps.toLocaleString();
+    document.getElementById('heroCalories').textContent = a.calories || '-';
+    document.getElementById('heroDist').textContent = a.distance ? (a.distance / 1000).toFixed(1) : '-';
+    document.getElementById('heroActiveTime').textContent = a.active_min > 0 ? fmtMin(a.active_min) : '-';
+
+    // Step ring (goal: 10,000 steps)
+    const pct = Math.min(a.steps / 10000, 1);
+    const ring = document.getElementById('heroStepRing');
+    // circumference = 2*PI*35 = 219.9
+    ring.style.strokeDasharray = (pct * 220) + ' 220';
+    ring.style.stroke = pct >= 1 ? 'var(--green)' : pct >= 0.6 ? 'var(--blue)' : 'var(--yellow)';
 }
 
 // Init
