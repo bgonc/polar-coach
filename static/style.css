@@ -358,11 +358,14 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 }
 .btn-create-plan:hover { opacity: 0.85; }
 
-.ai-plan-bar { margin-bottom: 0.35rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); }
-.plan-status-row { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+.plan-sec { margin-bottom: 0.4rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+.plan-sec-header { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; cursor: pointer; }
+.plan-sec-label { font-size: 0.68rem; color: var(--text3); }
 .plan-badge { font-size: 0.6rem; font-weight: 700; padding: 0.12rem 0.4rem; border-radius: 6px; background: var(--green-dim); color: var(--green); }
 .plan-race { font-size: 0.66rem; font-weight: 600; color: var(--text); }
 .plan-date { font-size: 0.58rem; color: var(--text3); }
+.plan-view-hint { font-size: 0.58rem; color: var(--text3); margin-left: auto; }
+.plan-sec-header:hover .plan-view-hint { color: var(--text2); }
 
 .plan-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
 .plan-content.expanded { max-height: 2000px; overflow-y: auto; }
