@@ -80,8 +80,6 @@
                     <div class="detail-row"><span>Light</span><span id="dSleepLight">-</span></div>
                     <div class="detail-row"><span>Deep</span><span id="dSleepDeep">-</span></div>
                     <div class="detail-row"><span>REM</span><span id="dSleepRem">-</span></div>
-                    {% if sleep_temp %}<div class="detail-row"><span>Skin Temp</span><span>{{ sleep_temp }}</span></div>{% endif %}
-                    {% if bedtime %}<div class="detail-row"><span>Optimal Bedtime</span><span id="dBedtime">-</span></div>{% endif %}
                 </div>
             </div>
 
@@ -156,10 +154,6 @@
                 </div>
             </div>
 
-            <!-- Extra metrics (temp, SpO2, bedtime) -->
-            <div class="card card-extras" id="extrasCard" style="display:none">
-                <div id="extrasList" class="extras-list"></div>
-            </div>
         </div>
 
         <!-- Weekly / Monthly Summary -->
@@ -1074,8 +1068,7 @@ function updateActivity(ds) {
     document.getElementById('actSteps').textContent = a.steps.toLocaleString();
     document.getElementById('actCal').textContent = a.calories || '-';
     document.getElementById('actDist').textContent = a.distance ? (a.distance / 1000).toFixed(1) + 'km' : '-';
-    const mins = Math.round((a.active_duration || 0) / 60);
-    document.getElementById('actTime').textContent = mins > 0 ? fmtMin(mins) : '-';
+    document.getElementById('actTime').textContent = a.active_min > 0 ? fmtMin(a.active_min) : '-';
 }
 
 // Init

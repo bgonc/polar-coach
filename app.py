@@ -188,15 +188,9 @@ def dashboard(date=None):
 
     # Additional bulk data
     activities = _fetch_with_cache("activities", client.get_activities, errors, "activities")
-    cardio_load = _fetch_with_cache("cardio_load", client.get_cardio_load_history, errors, "cardio load")
-    alertness = _fetch_with_cache("alertness", client.get_alertness, errors, "alertness")
-    bedtime = _fetch_with_cache("bedtime", client.get_circadian_bedtime, errors, "bedtime")
 
     # Per-date data
     hr_data = _fetch_with_cache(f"hr_{date_str}", lambda: client.get_heart_rate(date_str), errors, "heart rate")
-    body_temp = _fetch_with_cache(f"temp_{date_str}", lambda: client.get_body_temperature(date_str), errors, "temperature")
-    sleep_temp = _fetch_with_cache(f"stemp_{date_str}", lambda: client.get_sleep_temperature(date_str), errors, "sleep temp")
-    spo2 = _fetch_with_cache(f"spo2_{date_str}", lambda: client.get_spo2(date_str), errors, "spo2")
 
     # Find data for selected date
     selected_sleep = None
@@ -291,12 +285,29 @@ def dashboard(date=None):
         act_list = activities if isinstance(activities, list) else activities.get("activity-log", activities.get("activities", []))
         if isinstance(act_list, list):
             for a in act_list:
-                all_activity[a.get("date", "")] = {
+                # Extract date from start_time (format: "2026-03-01T00:00")
+                date_key = a.get("start_time", a.get("date", ""))[:10]
+                if not date_key:
+                    continue
+                # Parse ISO duration "PT6H25M" to minutes
+                dur_str = a.get("active_duration", a.get("active-duration", ""))
+                dur_min = 0
+                if isinstance(dur_str, str) and "PT" in dur_str:
+                    import re
+                    hm = re.findall(r'(\d+)H', dur_str)
+                    mm = re.findall(r'(\d+)M', dur_str)
+                    dur_min = int(hm[0]) * 60 if hm else 0
+                    dur_min += int(mm[0]) if mm else 0
+                elif isinstance(dur_str, (int, float)):
+                    dur_min = int(dur_str / 60)
+
+                all_activity[date_key] = {
                     "steps": a.get("steps", 0),
                     "calories": a.get("calories", 0),
                     "active_calories": a.get("active_calories", a.get("active-calories", 0)),
                     "distance": a.get("distance_from_steps", a.get("distance", 0)),
-                    "active_duration": a.get("active_duration", a.get("active-duration", 0)),
+                    "active_min": dur_min,
+                    "daily_activity": a.get("daily_activity", 0),
                 }
 
     return render_template(
@@ -311,11 +322,6 @@ def dashboard(date=None):
         all_recharge_json=json.dumps(all_recharge),
         all_activity_json=json.dumps(all_activity),
         daily_scores_json=json.dumps(daily_scores),
-        body_temp=body_temp,
-        sleep_temp=sleep_temp,
-        spo2=spo2,
-        alertness=alertness,
-        bedtime=bedtime,
         summaries=summaries,
         training_summary=training_summary,
         events_json=json.dumps(_get_cached_events()),
