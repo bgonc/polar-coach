@@ -110,6 +110,7 @@
                     <div class="stress-mini-wrap">
                         <span id="stressMini" class="score-mini">-</span>
                         <div class="stress-bar-mini" id="stressBarMini"><div class="stress-bar-fill" id="stressBarFill"></div></div>
+                        <span id="stressNow" class="stress-now"></span>
                     </div>
                 </div>
                 <div class="score-detail" id="stressDetail">
@@ -489,12 +490,12 @@ const hrCache = {};
 {% if hr_data and hr_data.heart_rate_samples %}hrCache['{{ selected_date }}'] = {{ hr_data.heart_rate_samples | tojson }};{% endif %}
 
 async function fetchHR(ds) {
-    if (hrCache[ds]) { drawHR(hrCache[ds]); drawStressChart(ds); return; }
+    if (hrCache[ds]) { drawHR(hrCache[ds]); updateCurrentStress(hrCache[ds]); return; }
     document.getElementById('hrCard').style.display = 'none';
     try {
         const r = await fetch('/api/hr/' + ds);
         const d = await r.json();
-        if (d && d.heart_rate_samples) { hrCache[ds] = d.heart_rate_samples; drawHR(d.heart_rate_samples); drawStressChart(ds); }
+        if (d && d.heart_rate_samples) { hrCache[ds] = d.heart_rate_samples; drawHR(d.heart_rate_samples); updateCurrentStress(d.heart_rate_samples); }
     } catch(e) {}
 }
 
@@ -889,6 +890,30 @@ function drawStressChart(ds) {
     ctx.textAlign = 'right';
     ctx.fillText('Low', pad.left - 3, yPos(10));
     ctx.fillText('High', pad.left - 3, yPos(90));
+}
+
+// ===== Current Stress from latest HR =====
+function updateCurrentStress(samples) {
+    const el = document.getElementById('stressNow');
+    if (!el || !samples || !samples.length) { if (el) el.textContent = ''; return; }
+
+    // Get the last HR sample
+    const last = samples[samples.length - 1];
+    if (!last || !last.heart_rate) { el.textContent = ''; return; }
+
+    const restingHR = 50; // from profile
+    const hr = last.heart_rate;
+    const stress = Math.max(0, Math.min(100, Math.round(((hr - restingHR) / (restingHR * 0.8)) * 100)));
+    const time = last.sample_time ? last.sample_time.substring(0, 5) : '';
+
+    let label, color;
+    if (stress <= 25) { label = 'Low'; color = 'var(--green)'; }
+    else if (stress <= 50) { label = 'Mod'; color = 'var(--blue)'; }
+    else if (stress <= 75) { label = 'High'; color = 'var(--yellow)'; }
+    else { label = 'Very High'; color = 'var(--red)'; }
+
+    el.innerHTML = `<span style="color:${color}">${stress}</span> <span class="stress-now-label">now</span>`;
+    el.title = `${hr}bpm at ${time} — ${label} stress`;
 }
 
 // ===== Calendar =====

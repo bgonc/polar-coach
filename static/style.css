@@ -126,6 +126,8 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .stress-mini-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; flex-shrink: 0; }
 .stress-bar-mini { width: 48px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
 .stress-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease, background 0.4s ease; }
+.stress-now { font-size: 0.6rem; font-weight: 700; display: flex; align-items: center; gap: 0.15rem; }
+.stress-now-label { font-size: 0.5rem; font-weight: 500; color: var(--text3); }
 
 .score-detail { max-height: 0; overflow: hidden; transition: max-height 0.25s ease, padding 0.25s ease; padding: 0 0.85rem; }
 .score-card.expanded .score-detail { max-height: 350px; padding: 0 0.85rem 0.65rem; }
