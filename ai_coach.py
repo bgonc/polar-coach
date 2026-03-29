@@ -20,9 +20,15 @@ DEFAULT_MODEL = "gpt-5.4-nano"
 PREMIUM_MODEL = "claude-sonnet"  # For 3rd column AI chat, monthly reports, deep analysis
 
 
-def _get_model_id(task="default"):
-    """Get model ID based on task type. Premium tasks use Claude, quick tasks use profile default."""
+def _get_model_id(task="profile"):
+    """Get model ID based on task type.
+    - 'cheap': always GPT Nano (session insights, weekly reports)
+    - 'premium': always Claude Sonnet (AI chat, monthly reports)
+    - 'profile': uses whatever is set in profile (training plans)
+    """
     from local_data import get_profile
+    if task == "cheap":
+        return AI_MODELS[DEFAULT_MODEL]["id"]
     if task == "premium":
         return AI_MODELS.get(PREMIUM_MODEL, AI_MODELS[DEFAULT_MODEL])["id"]
     p = get_profile()
@@ -241,7 +247,7 @@ Benefit: {ex.get('training_benefit','')}
 Give a 2-3 sentence analysis of this session: was it effective? What did it train? Suggestion for next similar session."""
 
     response = client.chat.completions.create(
-        model=_get_model_id("default"),
+        model=_get_model_id("cheap"),
         messages=[
             {"role": "system", "content": "You are a concise running/fitness coach. Analyze the session in 2-3 sentences."},
             {"role": "user", "content": prompt},
@@ -372,7 +378,7 @@ def generate_weekly_report(sleep_data, recharge_data, exercises, coaching, train
     context = _build_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
 
     response = client.chat.completions.create(
-        model=_get_model_id("default"),
+        model=_get_model_id("cheap"),
         messages=[
             {"role": "system", "content": _system_prompt()},
             {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n\nWeekly report: training done, recovery trends, what went well, what to improve. 3-4 paragraphs."},
