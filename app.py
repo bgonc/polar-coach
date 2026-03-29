@@ -741,14 +741,21 @@ def debug_data():
     client = get_client()
     data = {}
 
+    today = datetime.now().strftime("%Y-%m-%d")
     for label, fn in [
-        ("notifications", client.pull_notifications),
         ("exercises", client.get_exercises),
-        ("synced_exercises", client.sync_exercises),
-        ("debug_exercises", client.debug_exercises),
+        ("activities", client.get_activities),
+        ("activity_today", lambda: client.get_activity(today)),
+        ("cardio_load", client.get_cardio_load_history),
+        ("alertness", client.get_alertness),
+        ("bedtime", client.get_circadian_bedtime),
+        ("body_temp", lambda: client.get_body_temperature(today)),
+        ("sleep_temp", lambda: client.get_sleep_temperature(today)),
+        ("spo2", lambda: client.get_spo2(today)),
+        ("ecg", lambda: client.get_ecg(today)),
         ("sleep", client.get_sleep),
         ("recharge", client.get_nightly_recharge),
-        ("hr", lambda: client.get_heart_rate(datetime.now().strftime("%Y-%m-%d"))),
+        ("hr", lambda: client.get_heart_rate(today)),
     ]:
         try:
             result = fn()
