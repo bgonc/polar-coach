@@ -1,9 +1,5 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-
-# Auto-backup data on launch
-./backup.sh 2>/dev/null &
-
 source venv/bin/activate
 
 # Start Flask in background
