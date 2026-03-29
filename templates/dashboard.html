@@ -36,6 +36,9 @@
         <div class="score-cards">
             <div class="score-card readiness-card" onclick="this.classList.toggle('expanded')">
                 <div class="score-top">
+                    <div class="score-icon readiness-bg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="8" r="5"/><path d="M3 21v-2a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v2"/></svg>
+                    </div>
                     <div class="score-main">
                         <span class="score-name">Readiness</span>
                         <span id="readinessPill" class="pill pill-dim">-</span>
@@ -56,6 +59,9 @@
 
             <div class="score-card" onclick="this.classList.toggle('expanded')">
                 <div class="score-top">
+                    <div class="score-icon sleep-bg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </div>
                     <div class="score-main">
                         <span class="score-name">Sleep</span>
                         <span id="sleepPill" class="pill">-</span>
@@ -77,6 +83,9 @@
 
             <div class="score-card" onclick="this.classList.toggle('expanded')">
                 <div class="score-top">
+                    <div class="score-icon recovery-bg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
                     <div class="score-main">
                         <span class="score-name">Recovery</span>
                         <span id="recoveryPill" class="pill">-</span>
@@ -97,6 +106,9 @@
 
             <div class="score-card" onclick="this.classList.toggle('expanded')">
                 <div class="score-top">
+                    <div class="score-icon stress-bg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
                     <div class="score-main">
                         <span class="score-name">Stress</span>
                         <span id="stressPill" class="pill">-</span>
@@ -386,7 +398,6 @@ function updateScoreCards(ds) {
         rVal.textContent = rd.score;
         setPill('readinessPill', rd.label, rd.color);
         readCard.style.borderColor = `var(--${rd.color})`;
-        readCard.style.borderLeftWidth = '3px';
         document.getElementById('dReadiness').textContent = rd.score + '/100';
         document.getElementById('dReadSleep').textContent = (sl ? sl.score : 0) + '/100';
         document.getElementById('dReadRecov').textContent = rc ? rc.ans_charge.toFixed(1) : '-';
