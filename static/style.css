@@ -208,33 +208,16 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .cal-day:hover { background: var(--surface2); color: var(--text); }
 .cal-day.today { color: var(--text); font-weight: 700; }
 .cal-day.selected { background: var(--accent); color: white; font-weight: 700; }
-/* Recovery-colored calendar days */
-.cal-day.cal-ready-green { color: var(--green); }
-.cal-day.cal-ready-blue { color: var(--blue); }
-.cal-day.cal-ready-yellow { color: var(--yellow); }
-.cal-day.cal-ready-red { color: var(--red); }
-.cal-day.selected.cal-ready-green,
-.cal-day.selected.cal-ready-blue,
-.cal-day.selected.cal-ready-yellow,
-.cal-day.selected.cal-ready-red { color: white; }
-
-.cal-day.has-session::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 4px var(--green); }
-.cal-day.selected.has-session::after { background: white; }
+/* Exercise days = green text */
+.cal-day.has-session { color: var(--green); font-weight: 700; }
+.cal-day.selected.has-session { color: white; }
 .cal-day.has-data { color: var(--text); }
 
-/* Plan dot on calendar (top-right, orange) */
-.cal-day.has-plan::before {
-    content: '';
-    position: absolute;
-    top: 2px;
-    right: 3px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--yellow);
-    box-shadow: 0 0 4px var(--yellow);
-}
-.cal-day.selected.has-plan::before { background: white; }
+/* Plan days = yellow text */
+.cal-day.has-plan { color: var(--yellow); }
+.cal-day.selected.has-plan { color: white; }
+/* Session overrides plan color */
+.cal-day.has-plan.has-session { color: var(--green); }
 
 /* Orienteering event days — soft purple fill */
 .cal-day.has-event { background: var(--purple-dim); color: var(--purple); font-weight: 600; }

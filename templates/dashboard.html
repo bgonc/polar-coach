@@ -931,8 +931,6 @@ function renderCalendar() {
         if(exerciseDates.has(ds)) c+=' has-session';
         if(planSchedule[ds]) c+=' has-plan';
         if(eventsByDate[ds]) c+=' has-event';
-        const dayScore = dailyScores[ds];
-        if(dayScore && dayScore.readiness) c+=' cal-ready-' + dayScore.readiness.color;
         let tip = '';
         if(planSchedule[ds]) tip = planSchedule[ds].title;
         if(eventsByDate[ds]) tip = (tip ? tip + ' | ' : '') + eventsByDate[ds].type + ' @ ' + eventsByDate[ds].location;
