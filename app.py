@@ -295,6 +295,7 @@ def dashboard(date=None):
         summaries=summaries,
         training_summary=training_summary,
         events_json=json.dumps(_get_cached_events()),
+        profile=get_profile(),
         errors=errors,
         selected_date=date_str,
         is_today=date_str == datetime.now().strftime("%Y-%m-%d"),
