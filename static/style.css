@@ -400,7 +400,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .col-right { display: flex; flex-direction: column; }
 .card-ai-main { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 0.75rem; }
 /* AI Toolbar */
-.ai-toolbar { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-bottom: 0.6rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+.ai-toolbar { display: flex; flex-wrap: nowrap; gap: 0.2rem; margin-bottom: 0.6rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
 .ai-tb-btn { padding: 0.25rem 0.55rem; background: none; border: none; border-radius: 6px; color: var(--text2); font-size: 0.68rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
 .ai-tb-btn:hover { background: var(--surface2); color: var(--text); }
 .ai-tb-primary { color: var(--accent); font-weight: 700; }
