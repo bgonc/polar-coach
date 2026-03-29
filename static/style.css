@@ -245,10 +245,16 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
     border-radius: var(--r-sm);
 }
 .plan-day-event { display: flex; align-items: center; gap: 0.4rem; }
+.plan-day-detail { }
+.plan-day-header { display: flex; align-items: center; gap: 0.4rem; }
 .plan-day-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .plan-day-info { display: flex; flex-direction: column; }
-.plan-day-title { font-size: 0.7rem; font-weight: 600; color: var(--text); }
-.plan-day-dur { font-size: 0.6rem; color: var(--text3); }
+.plan-day-title { font-size: 0.75rem; font-weight: 700; color: var(--text); }
+.plan-day-dur { font-size: 0.62rem; color: var(--text3); margin-left: auto; }
+.plan-day-body { margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px solid var(--border); font-size: 0.72rem; color: var(--text2); line-height: 1.6; }
+.plan-day-body strong { color: var(--text); }
+.plan-day-body li { margin-left: 1rem; margin-bottom: 0.1rem; }
+.plan-day-body em { color: var(--text3); }
 
 /* Compact calendar */
 .card-calendar-compact { padding: 0.5rem; }

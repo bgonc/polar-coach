@@ -1242,6 +1242,8 @@ function updatePlanDay(ds) {
     el.style.display = '';
 
     let html = '';
+
+    // Orienteering event
     if (ev) {
         html += `<div class="plan-day-event">
             <span class="plan-day-dot" style="background:var(--purple)"></span>
@@ -1251,18 +1253,74 @@ function updatePlanDay(ds) {
             </div>
         </div>`;
     }
+
+    // Plan day
     if (day) {
         const typeColors = {run:'var(--green)', strength:'var(--blue)', rest:'var(--text3)', orienteering:'var(--purple)'};
         const color = typeColors[day.type] || 'var(--text2)';
-        html += `<div class="plan-day-event">
-            <span class="plan-day-dot" style="background:${color}"></span>
-            <div class="plan-day-info">
+        html += `<div class="plan-day-detail">
+            <div class="plan-day-header">
+                <span class="plan-day-dot" style="background:${color}"></span>
                 <span class="plan-day-title">${esc(day.title || day.type || '')}</span>
                 <span class="plan-day-dur">${esc(day.duration || '')}</span>
-            </div>
-        </div>`;
+            </div>`;
+
+        // Try to extract the full workout from the plan text
+        const detail = extractDayDetail(ds);
+        if (detail) {
+            html += `<div class="plan-day-body">${fmtMd(detail)}</div>`;
+        }
+        html += `</div>`;
     }
+
     el.innerHTML = html;
+}
+
+function extractDayDetail(ds) {
+    // Search the plan text for the day's workout details
+    const planContent = document.getElementById('planContent');
+    if (!planContent) return '';
+    const planText = planContent.querySelector('.plan-text');
+    if (!planText) return '';
+    const raw = planText.textContent || '';
+    if (!raw) return '';
+
+    // Find the day in the plan text
+    const d = new Date(ds + 'T12:00:00');
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const dayAbbrs = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dayName = dayNames[d.getDay()];
+    const dayAbbr = dayAbbrs[d.getDay()];
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const monthDay = monthNames[d.getMonth()] + ' ' + d.getDate();
+    const monthDayAlt = monthNames[d.getMonth()] + ' ' + d.getDate();
+    const dateNum = ds.slice(8) + '.' + ds.slice(5,7);
+
+    // Try multiple patterns to find the day section
+    const patterns = [
+        dayName,
+        dayAbbr + ' ' + monthDay,
+        dayAbbr,
+        dateNum,
+        ds,
+    ];
+
+    const lines = raw.split('\n');
+    for (const pattern of patterns) {
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].toLowerCase().includes(pattern.toLowerCase()) && lines[i].length < 100) {
+                // Found the day header — collect until next day header or empty section
+                let result = [];
+                for (let j = i; j < lines.length && j < i + 15; j++) {
+                    const line = lines[j].trim();
+                    if (j > i && /^(monday|tuesday|wednesday|thursday|friday|saturday|sunday|week\s*\d)/i.test(line)) break;
+                    if (line) result.push(line);
+                }
+                if (result.length > 1) return result.join('\n');
+            }
+        }
+    }
+    return '';
 }
 
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
