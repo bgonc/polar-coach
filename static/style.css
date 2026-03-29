@@ -345,16 +345,16 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .plan-builder { margin-top: 0.5rem; }
 .plan-types { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem; }
 .plan-type {
-    font-size: 0.68rem; font-weight: 600; font-family: inherit; padding: 0.3rem 0.6rem;
-    border-radius: 8px; cursor: pointer; background: var(--bg2); border: 1px solid var(--border);
-    color: var(--text2); transition: all 0.15s;
+    font-size: 0.68rem; font-weight: 600; font-family: inherit; padding: 0.25rem 0.5rem;
+    border-radius: 6px; cursor: pointer; background: none; border: none;
+    color: var(--text3); transition: all 0.12s;
 }
-.plan-type:hover { border-color: var(--border2); color: var(--text); }
-.plan-type.selected { background: var(--accent); border-color: var(--accent); color: white; }
+.plan-type:hover { color: var(--text); background: var(--surface2); }
+.plan-type.selected { color: var(--accent); font-weight: 700; }
 .race-fields { margin-bottom: 0.4rem; }
 .btn-create-plan {
-    width: 100%; padding: 0.5rem; background: var(--green); color: var(--bg); border: none;
-    border-radius: var(--r-sm); font-size: 0.75rem; font-weight: 700; font-family: inherit; cursor: pointer;
+    width: 100%; padding: 0.4rem; background: var(--accent); color: white; border: none;
+    border-radius: 6px; font-size: 0.72rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: opacity 0.15s;
 }
 .btn-create-plan:hover { opacity: 0.85; }
 
