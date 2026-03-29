@@ -191,40 +191,28 @@
 
     <!-- ========== CENTER: Training ========== -->
     <div class="col col-center">
-        <!-- Daily Activity Hero -->
+        <!-- Daily Activity -->
         <div class="card card-hero" id="heroActivity" style="display:none">
-            <div class="hero-bars">
-                <div class="hero-bar-item">
-                    <div class="hero-bar-head">
-                        <span class="hero-bar-icon">&#128694;</span>
-                        <span class="hero-bar-label">Steps</span>
-                        <span class="hero-bar-val" id="heroSteps">-</span>
-                    </div>
-                    <div class="hero-bar-track"><div class="hero-bar-fill" id="heroStepBar"></div></div>
+            <div class="hero-grid">
+                <div class="hero-item">
+                    <span class="hero-item-icon">&#128694;</span>
+                    <span class="hero-item-val" id="heroSteps">-</span>
+                    <span class="hero-item-label">Steps</span>
                 </div>
-                <div class="hero-bar-item">
-                    <div class="hero-bar-head">
-                        <span class="hero-bar-icon">&#9889;</span>
-                        <span class="hero-bar-label">Calories</span>
-                        <span class="hero-bar-val" id="heroCalories">-</span>
-                    </div>
-                    <div class="hero-bar-track"><div class="hero-bar-fill hero-bar-cal" id="heroCalBar"></div></div>
+                <div class="hero-item">
+                    <span class="hero-item-icon">&#9889;</span>
+                    <span class="hero-item-val" id="heroCalories">-</span>
+                    <span class="hero-item-label">Calories</span>
                 </div>
-                <div class="hero-bar-item">
-                    <div class="hero-bar-head">
-                        <span class="hero-bar-icon">&#128336;</span>
-                        <span class="hero-bar-label">Active</span>
-                        <span class="hero-bar-val" id="heroActiveTime">-</span>
-                    </div>
-                    <div class="hero-bar-track"><div class="hero-bar-fill hero-bar-time" id="heroTimeBar"></div></div>
+                <div class="hero-item">
+                    <span class="hero-item-icon">&#128336;</span>
+                    <span class="hero-item-val" id="heroActiveTime">-</span>
+                    <span class="hero-item-label">Active</span>
                 </div>
-                <div class="hero-bar-item">
-                    <div class="hero-bar-head">
-                        <span class="hero-bar-icon">&#128205;</span>
-                        <span class="hero-bar-label">Distance</span>
-                        <span class="hero-bar-val"><span id="heroDist">-</span> km</span>
-                    </div>
-                    <div class="hero-bar-track"><div class="hero-bar-fill hero-bar-dist" id="heroDistBar"></div></div>
+                <div class="hero-item">
+                    <span class="hero-item-icon">&#128205;</span>
+                    <span class="hero-item-val" id="heroDist">-</span>
+                    <span class="hero-item-label">Distance</span>
                 </div>
             </div>
         </div>
@@ -501,11 +489,11 @@ function updateScoreCards(ds) {
     // Recovery card
     if (rc) {
         setPill('recoveryPill', rc.label, rc.color);
-        // Map ANS charge (-10 to +10) to 0-100 for ring
         const recPct = Math.max(0, Math.min(100, (rc.ans_charge + 10) / 20 * 100));
         setMiniRing('recoveryRing', recPct, `var(--${rc.color})`);
-        document.getElementById('recoveryRingVal').textContent = rc.ans_charge > 0 ? '+' + rc.ans_charge.toFixed(0) : rc.ans_charge.toFixed(0);
-        document.getElementById('recoveryMini').textContent = rc.ans_charge > 0 ? '+' + rc.ans_charge.toFixed(1) : rc.ans_charge.toFixed(1);
+        const ansStr = rc.ans_charge > 0 ? '+' + rc.ans_charge.toFixed(1) : rc.ans_charge.toFixed(1);
+        document.getElementById('recoveryRingVal').textContent = ansStr;
+        document.getElementById('recoveryMini').textContent = '';
         document.getElementById('dAns').textContent = rc.ans_charge.toFixed(1);
         document.getElementById('dHrv').textContent = rech ? rech.heart_rate_variability_avg + ' ms' : '-';
         document.getElementById('dRhr').textContent = rech ? rech.heart_rate_avg + ' bpm' : '-';
@@ -1099,15 +1087,9 @@ function updateActivity(ds) {
     card.style.display = '';
 
     document.getElementById('heroSteps').textContent = a.steps.toLocaleString();
-    document.getElementById('heroCalories').textContent = a.calories || '-';
-    document.getElementById('heroDist').textContent = a.distance ? (a.distance / 1000).toFixed(1) : '-';
+    document.getElementById('heroCalories').textContent = a.calories.toLocaleString();
+    document.getElementById('heroDist').textContent = a.distance ? (a.distance / 1000).toFixed(1) + ' km' : '-';
     document.getElementById('heroActiveTime').textContent = a.active_min > 0 ? fmtMin(a.active_min) : '-';
-
-    // Bars (goals: 10k steps, 2500 cal, 60 min active, 5km)
-    document.getElementById('heroStepBar').style.width = Math.min(a.steps / 10000 * 100, 100) + '%';
-    document.getElementById('heroCalBar').style.width = Math.min(a.calories / 2500 * 100, 100) + '%';
-    document.getElementById('heroTimeBar').style.width = Math.min(a.active_min / 60 * 100, 100) + '%';
-    document.getElementById('heroDistBar').style.width = Math.min((a.distance / 1000) / 5 * 100, 100) + '%';
 }
 
 // Init
