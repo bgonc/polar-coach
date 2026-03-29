@@ -235,7 +235,7 @@
                     <canvas id="volumeCanvas" width="280" height="70"></canvas>
                 </div>
                 <div id="paceZonesCard" style="display:none">
-                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Pace Zones</div>
+                    <div class="week-dots-label" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border)">Training Zones</div>
                     <div id="paceZonesList"></div>
                 </div>
                 <div id="racePredCard" style="display:none">
@@ -1405,12 +1405,27 @@ async function loadPaceZones() {
         const card = document.getElementById('paceZonesCard');
         card.style.display = '';
         const colors = ['#6bb7e0','#5eb85e','#f0ad4e','#ee7a35','#d9534f'];
-        document.getElementById('paceZonesList').innerHTML = zones.map((z, i) =>
-            `<div class="pace-zone-row" style="border-left-color:${colors[i]}">
-                <span class="pz-name">Z${z.zone} ${z.name}</span>
-                <span class="pz-pace">${z.min_pace} - ${z.max_pace}</span>
-            </div>`
-        ).join('');
+
+        // Also fetch HR zones from profile
+        let hrZoneData = {};
+        try {
+            const pr = await fetch('/api/profile');
+            const profile = await pr.json();
+            for (let i = 1; i <= 5; i++) {
+                const z = profile['hr_zone_' + i];
+                if (z) hrZoneData[i] = z.split('(')[0].trim(); // Just "99-115 bpm"
+            }
+        } catch(e) {}
+
+        document.getElementById('paceZonesList').innerHTML =
+            `<div class="zone-header"><span></span><span>Pace</span><span>HR</span></div>` +
+            zones.map((z, i) =>
+                `<div class="pace-zone-row" style="border-left-color:${colors[i]}">
+                    <span class="pz-name">Z${z.zone} ${z.name}</span>
+                    <span class="pz-pace">${z.min_pace} - ${z.max_pace}</span>
+                    <span class="pz-hr">${hrZoneData[z.zone] || ''}</span>
+                </div>`
+            ).join('');
     } catch(e) {}
 }
 loadPaceZones();

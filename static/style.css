@@ -85,7 +85,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .toast span { display: block; background: var(--yellow-dim); border: 1px solid rgba(245,166,35,0.2); color: var(--yellow); border-radius: var(--r-sm); padding: 0.5rem 0.75rem; font-size: 0.75rem; }
 
 /* Three Col Layout */
-.three-col { display: grid; grid-template-columns: 300px 1fr 380px; gap: 0.75rem; max-width: 1600px; margin: 0 auto; padding: 0 1.5rem 2rem; min-height: calc(100vh - 100px); }
+.three-col { display: grid; grid-template-columns: 260px 1fr 320px; gap: 0.75rem; max-width: 1400px; margin: 0 auto; padding: 0 1.5rem 2rem; min-height: calc(100vh - 100px); }
 .col { display: flex; flex-direction: column; gap: 0.6rem; }
 .col-header { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); padding: 0; margin: 0; }
 
@@ -524,15 +524,19 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .benefit-tag.benefit-endurance { background: var(--green-dim); color: var(--green); }
 .benefit-tag.benefit-general { background: var(--bg2); color: var(--text3); }
 
-/* === Pace Zones === */
+/* === Training Zones === */
+.zone-header { display: grid; grid-template-columns: 1fr 85px 85px; gap: 0.3rem; padding: 0 0.5rem 0.15rem; }
+.zone-header span { font-size: 0.55rem; color: var(--text3); font-weight: 600; text-transform: uppercase; text-align: right; }
+.zone-header span:first-child { text-align: left; }
 .pace-zone-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.3rem 0.5rem; border-left: 3px solid var(--border2);
-    margin-bottom: 0.2rem; border-radius: 0 var(--r-sm) var(--r-sm) 0;
-    background: var(--bg2); font-size: 0.72rem;
+    display: grid; grid-template-columns: 1fr 85px 85px; gap: 0.3rem; align-items: center;
+    padding: 0.25rem 0.5rem; border-left: 3px solid var(--border2);
+    margin-bottom: 0.15rem; border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    background: var(--bg2); font-size: 0.7rem;
 }
 .pz-name { font-weight: 600; color: var(--text); }
-.pz-pace { color: var(--text2); font-weight: 500; font-size: 0.68rem; }
+.pz-pace { color: var(--text2); font-weight: 500; font-size: 0.66rem; text-align: right; }
+.pz-hr { color: var(--text3); font-size: 0.62rem; text-align: right; }
 
 /* === Race Predictions === */
 .race-grid { display: flex; gap: 0.25rem; }
@@ -608,8 +612,8 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 :root.light .race-item { background: var(--surface2); }
 
 /* Responsive */
-@media (max-width: 1200px) {
-    .three-col { grid-template-columns: 280px 1fr; }
+@media (max-width: 1100px) {
+    .three-col { grid-template-columns: 240px 1fr; }
     .col-right { grid-column: 1 / -1; }
     .card-ai-main { max-height: 500px; }
     .ai-chat { max-height: 300px; }
