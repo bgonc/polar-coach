@@ -588,7 +588,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 :root.light .cal-day.today { color: var(--text); }
 :root.light .cal-day:hover { background: var(--bg2); }
 :root.light .cal-day.selected { background: var(--accent); color: white; }
-:root.light .cal-day.has-session { color: var(--green); }
+:root.light .cal-day.has-session { color: var(--accent); font-weight: 700; }
 :root.light .score-card:hover { border-color: var(--border2); }
 :root.light .session-item { background: var(--surface2); }
 :root.light .session-item:hover { background: var(--bg2); }
