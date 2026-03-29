@@ -166,11 +166,23 @@ class PolarClient:
     # --- Activity ---
 
     def get_activity(self, date):
+        """Get activity summary for a specific date."""
         resp = requests.get(
-            f"{BASE_URL}/v3/users/activity-transactions/{date}",
+            f"{BASE_URL}/v3/users/activities/{date}",
             headers=self._headers(),
         )
-        if resp.status_code == 204:
+        if resp.status_code in (204, 404):
+            return None
+        resp.raise_for_status()
+        return resp.json()
+
+    def get_activities(self):
+        """List activity summaries (last 28 days)."""
+        resp = requests.get(
+            f"{BASE_URL}/v3/users/activities",
+            headers=self._headers(),
+        )
+        if resp.status_code in (204, 404):
             return None
         resp.raise_for_status()
         return resp.json()
@@ -181,6 +193,87 @@ class PolarClient:
         resp = requests.get(
             f"{BASE_URL}/v3/users/cardio-load", headers=self._headers()
         )
+        resp.raise_for_status()
+        return resp.json()
+
+    def get_cardio_load_history(self):
+        """Get cardio load history data (daily breakdown)."""
+        resp = requests.get(
+            f"{BASE_URL}/v3/users/cardio-load/histdata/days",
+            headers=self._headers(),
+        )
+        if resp.status_code in (204, 404):
+            return None
+        resp.raise_for_status()
+        return resp.json()
+
+    # --- Sleep-Wise ---
+
+    def get_alertness(self):
+        """Get SleepWise alertness data."""
+        resp = requests.get(
+            f"{BASE_URL}/v3/users/sleep-wise/alertness",
+            headers=self._headers(),
+        )
+        if resp.status_code in (204, 404):
+            return None
+        resp.raise_for_status()
+        return resp.json()
+
+    def get_circadian_bedtime(self):
+        """Get SleepWise circadian bedtime recommendation."""
+        resp = requests.get(
+            f"{BASE_URL}/v3/users/sleep-wise/circadian-bedtime",
+            headers=self._headers(),
+        )
+        if resp.status_code in (204, 404):
+            return None
+        resp.raise_for_status()
+        return resp.json()
+
+    # --- Body Measurements ---
+
+    def get_body_temperature(self, date):
+        """Get body temperature for a specific date."""
+        resp = requests.get(
+            f"{BASE_URL}/v3/users/body-temperature/{date}",
+            headers=self._headers(),
+        )
+        if resp.status_code in (204, 404):
+            return None
+        resp.raise_for_status()
+        return resp.json()
+
+    def get_sleep_temperature(self, date):
+        """Get sleep skin temperature for a specific date."""
+        resp = requests.get(
+            f"{BASE_URL}/v3/users/sleep-skin-temperature/{date}",
+            headers=self._headers(),
+        )
+        if resp.status_code in (204, 404):
+            return None
+        resp.raise_for_status()
+        return resp.json()
+
+    def get_spo2(self, date):
+        """Get SpO2 data for a specific date."""
+        resp = requests.get(
+            f"{BASE_URL}/v3/users/spo2/{date}",
+            headers=self._headers(),
+        )
+        if resp.status_code in (204, 404):
+            return None
+        resp.raise_for_status()
+        return resp.json()
+
+    def get_ecg(self, date):
+        """Get wrist ECG data for a specific date."""
+        resp = requests.get(
+            f"{BASE_URL}/v3/users/wrist-ecg/{date}",
+            headers=self._headers(),
+        )
+        if resp.status_code in (204, 404):
+            return None
         resp.raise_for_status()
         return resp.json()
 

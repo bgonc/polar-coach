@@ -186,13 +186,17 @@ def dashboard(date=None):
         elif not exercises:
             exercises = synced
 
-    # HR is per-date, cache with date key
-    hr_data = _fetch_with_cache(
-        f"hr_{date_str}",
-        lambda: client.get_heart_rate(date_str),
-        errors,
-        "heart rate",
-    )
+    # Additional bulk data
+    activities = _fetch_with_cache("activities", client.get_activities, errors, "activities")
+    cardio_load = _fetch_with_cache("cardio_load", client.get_cardio_load_history, errors, "cardio load")
+    alertness = _fetch_with_cache("alertness", client.get_alertness, errors, "alertness")
+    bedtime = _fetch_with_cache("bedtime", client.get_circadian_bedtime, errors, "bedtime")
+
+    # Per-date data
+    hr_data = _fetch_with_cache(f"hr_{date_str}", lambda: client.get_heart_rate(date_str), errors, "heart rate")
+    body_temp = _fetch_with_cache(f"temp_{date_str}", lambda: client.get_body_temperature(date_str), errors, "temperature")
+    sleep_temp = _fetch_with_cache(f"stemp_{date_str}", lambda: client.get_sleep_temperature(date_str), errors, "sleep temp")
+    spo2 = _fetch_with_cache(f"spo2_{date_str}", lambda: client.get_spo2(date_str), errors, "spo2")
 
     # Find data for selected date
     selected_sleep = None
@@ -281,6 +285,20 @@ def dashboard(date=None):
                 "hrv_samples": r.get("hrv_samples", {}),
             }
 
+    # Build activity data for template
+    all_activity = {}
+    if activities:
+        act_list = activities if isinstance(activities, list) else activities.get("activity-log", activities.get("activities", []))
+        if isinstance(act_list, list):
+            for a in act_list:
+                all_activity[a.get("date", "")] = {
+                    "steps": a.get("steps", 0),
+                    "calories": a.get("calories", 0),
+                    "active_calories": a.get("active_calories", a.get("active-calories", 0)),
+                    "distance": a.get("distance_from_steps", a.get("distance", 0)),
+                    "active_duration": a.get("active_duration", a.get("active-duration", 0)),
+                }
+
     return render_template(
         "dashboard.html",
         coaching=coaching,
@@ -291,7 +309,13 @@ def dashboard(date=None):
         selected_recharge=selected_recharge,
         all_sleep_json=json.dumps(all_sleep),
         all_recharge_json=json.dumps(all_recharge),
+        all_activity_json=json.dumps(all_activity),
         daily_scores_json=json.dumps(daily_scores),
+        body_temp=body_temp,
+        sleep_temp=sleep_temp,
+        spo2=spo2,
+        alertness=alertness,
+        bedtime=bedtime,
         summaries=summaries,
         training_summary=training_summary,
         events_json=json.dumps(_get_cached_events()),

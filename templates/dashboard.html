@@ -65,11 +65,13 @@
                     <div class="score-main">
                         <span class="score-name">Sleep</span>
                         <span id="sleepPill" class="pill">-</span>
-                        <span class="score-sub" id="sleepMini">-</span>
                     </div>
-                    <div class="mini-ring">
-                        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" class="ring-track"/><circle cx="24" cy="24" r="20" class="ring-progress" id="sleepRing"/></svg>
-                        <span class="mini-ring-val" id="sleepRingVal">-</span>
+                    <div class="mini-ring-wrap">
+                        <div class="mini-ring">
+                            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" class="ring-track"/><circle cx="24" cy="24" r="20" class="ring-progress" id="sleepRing"/></svg>
+                            <span class="mini-ring-val" id="sleepRingVal">-</span>
+                        </div>
+                        <span class="mini-ring-sub" id="sleepMini">-</span>
                     </div>
                 </div>
                 <div class="score-detail" id="sleepDetail">
@@ -78,6 +80,8 @@
                     <div class="detail-row"><span>Light</span><span id="dSleepLight">-</span></div>
                     <div class="detail-row"><span>Deep</span><span id="dSleepDeep">-</span></div>
                     <div class="detail-row"><span>REM</span><span id="dSleepRem">-</span></div>
+                    {% if sleep_temp %}<div class="detail-row"><span>Skin Temp</span><span>{{ sleep_temp }}</span></div>{% endif %}
+                    {% if bedtime %}<div class="detail-row"><span>Optimal Bedtime</span><span id="dBedtime">-</span></div>{% endif %}
                 </div>
             </div>
 
@@ -89,11 +93,13 @@
                     <div class="score-main">
                         <span class="score-name">Recovery</span>
                         <span id="recoveryPill" class="pill">-</span>
-                        <span class="score-sub" id="recoveryMini">-</span>
                     </div>
-                    <div class="mini-ring">
-                        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" class="ring-track"/><circle cx="24" cy="24" r="20" class="ring-progress" id="recoveryRing"/></svg>
-                        <span class="mini-ring-val" id="recoveryRingVal">-</span>
+                    <div class="mini-ring-wrap">
+                        <div class="mini-ring">
+                            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" class="ring-track"/><circle cx="24" cy="24" r="20" class="ring-progress" id="recoveryRing"/></svg>
+                            <span class="mini-ring-val" id="recoveryRingVal">-</span>
+                        </div>
+                        <span class="mini-ring-sub" id="recoveryMini">-</span>
                     </div>
                 </div>
                 <div class="score-detail" id="recoveryDetail">
@@ -112,11 +118,13 @@
                     <div class="score-main">
                         <span class="score-name">Stress</span>
                         <span id="stressPill" class="pill">-</span>
-                        <span class="score-sub stress-now" id="stressNow"></span>
                     </div>
-                    <div class="mini-ring">
-                        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" class="ring-track"/><circle cx="24" cy="24" r="20" class="ring-progress" id="stressRing"/></svg>
-                        <span class="mini-ring-val" id="stressMini">-</span>
+                    <div class="mini-ring-wrap">
+                        <div class="mini-ring">
+                            <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" class="ring-track"/><circle cx="24" cy="24" r="20" class="ring-progress" id="stressRing"/></svg>
+                            <span class="mini-ring-val" id="stressMini">-</span>
+                        </div>
+                        <span class="mini-ring-sub stress-now" id="stressNow"></span>
                     </div>
                 </div>
                 <div class="score-detail" id="stressDetail">
@@ -133,6 +141,21 @@
                     <div><span class="score-name">Bio Age</span><span class="bio-age-sub" id="bioAgeSub">vs actual age</span></div>
                     <span class="bio-age-val" id="bioAgeVal">-</span>
                 </div>
+            </div>
+
+            <!-- Daily Activity -->
+            <div class="card card-activity" id="activityCard" style="display:none">
+                <div class="activity-grid">
+                    <div class="activity-item"><span class="activity-val" id="actSteps">-</span><span class="activity-label">Steps</span></div>
+                    <div class="activity-item"><span class="activity-val" id="actCal">-</span><span class="activity-label">Calories</span></div>
+                    <div class="activity-item"><span class="activity-val" id="actDist">-</span><span class="activity-label">Distance</span></div>
+                    <div class="activity-item"><span class="activity-val" id="actTime">-</span><span class="activity-label">Active</span></div>
+                </div>
+            </div>
+
+            <!-- Extra metrics (temp, SpO2, bedtime) -->
+            <div class="card card-extras" id="extrasCard" style="display:none">
+                <div id="extrasList" class="extras-list"></div>
             </div>
         </div>
 
@@ -333,6 +356,7 @@ const allSleep = {{ all_sleep_json | safe }};
 const allRecharge = {{ all_recharge_json | safe }};
 const dailyScores = {{ daily_scores_json | safe }};
 const exerciseDates = new Set({{ exercises | map(attribute='date') | list | tojson }});
+const allActivity = {{ all_activity_json | safe }};
 let planSchedule = {};
 const eventsByDate = {};
 ({{ events_json | safe }}).forEach(e => { eventsByDate[e.date] = e; });
@@ -350,6 +374,7 @@ function setDate(ds) {
     const exDate = document.getElementById('exDate');
     if (exDate) exDate.value = ds;
     updateScoreCards(ds);
+    updateActivity(ds);
     updatePlanDay(ds);
     fetchHR(ds);
     renderCalendar();
@@ -1036,6 +1061,19 @@ function computeBioAge() {
     sub.style.color = diff <= -2 ? 'var(--green)' : diff >= 2 ? 'var(--red)' : 'var(--text3)';
 }
 computeBioAge();
+
+// Update activity + extras on date change
+function updateActivity(ds) {
+    const a = allActivity[ds];
+    const card = document.getElementById('activityCard');
+    if (!a || !a.steps) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    document.getElementById('actSteps').textContent = a.steps.toLocaleString();
+    document.getElementById('actCal').textContent = a.calories || '-';
+    document.getElementById('actDist').textContent = a.distance ? (a.distance / 1000).toFixed(1) + 'km' : '-';
+    const mins = Math.round((a.active_duration || 0) / 60);
+    document.getElementById('actTime').textContent = mins > 0 ? fmtMin(mins) : '-';
+}
 
 // Init
 setDate(currentDate);

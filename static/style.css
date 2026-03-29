@@ -90,19 +90,33 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .col-header { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); padding: 0; margin: 0; }
 
 /* Mini rings in score cards */
-.mini-ring { position: relative; width: 42px; height: 42px; flex-shrink: 0; }
+.mini-ring-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.mini-ring { position: relative; width: 42px; height: 42px; }
 .mini-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring-track { fill: none; stroke: var(--border); stroke-width: 4; }
 .ring-progress { fill: none; stroke-width: 4; stroke-linecap: round; transition: stroke-dasharray 0.6s ease, stroke 0.4s ease; stroke-dasharray: 0 126; }
 .mini-ring-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; color: var(--text); }
-
-.score-sub { display: block; font-size: 0.65rem; color: var(--text3); font-weight: 500; margin-top: 0.1rem; }
+.mini-ring-sub { font-size: 0.58rem; color: var(--text3); font-weight: 600; margin-top: 0.1rem; }
 
 /* Bio Age card */
 .card-bio-age { padding: 0.6rem 0.85rem; }
 .bio-age-row { display: flex; align-items: center; justify-content: space-between; }
 .bio-age-val { font-size: 1.4rem; font-weight: 900; }
 .bio-age-sub { display: block; font-size: 0.6rem; color: var(--text3); margin-top: 0.1rem; }
+
+/* Daily Activity */
+.card-activity { padding: 0.6rem 0.85rem; }
+.activity-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.3rem; }
+.activity-item { display: flex; flex-direction: column; align-items: center; }
+.activity-val { font-size: 0.82rem; font-weight: 800; color: var(--text); }
+.activity-label { font-size: 0.52rem; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Extras (temp, SpO2, bedtime) */
+.card-extras { padding: 0.6rem 0.85rem; }
+.extras-list { display: flex; flex-direction: column; gap: 0.2rem; }
+.extras-row { display: flex; justify-content: space-between; font-size: 0.7rem; }
+.extras-row span:first-child { color: var(--text2); }
+.extras-row span:last-child { font-weight: 600; color: var(--text); }
 
 /* Cards */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 0.85rem; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
@@ -130,7 +144,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .pill-dim { background: var(--bg2); color: var(--text3); }
 
 /* Readiness card */
-.readiness-card { transition: border-color 0.3s ease; }
+.readiness-card { transition: border-color 0.3s ease; border-width: 2px; }
 .readiness-bg { background: var(--green-dim); color: var(--green); }
 
 .score-mini { font-size: 1.05rem; font-weight: 800; color: var(--text2); flex-shrink: 0; }
