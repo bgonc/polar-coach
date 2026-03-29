@@ -200,10 +200,6 @@
                         <button class="cal-nav cal-nav-sm" onclick="weekNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg></button>
                     </div>
                     <div class="week-dots-row" id="weekDots"></div>
-                    <button class="week-report-btn" onclick="getWeeklyReport()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        Weekly Report
-                    </button>
                 </div>
 
                 <!-- Recent exercises (last 10) -->
@@ -286,6 +282,7 @@
                 <button class="ai-tb-btn ai-tb-primary" onclick="getAdvice()">Today</button>
                 <button class="ai-tb-btn" id="adjustBtn" onclick="adjustPlan()" style="display:none">Adjust Plan</button>
                 <button class="ai-tb-btn" onclick="getAdvice('How is my recovery?')">Recovery</button>
+                <button class="ai-tb-btn" onclick="getWeeklyReport()">Weekly</button>
                 <button class="ai-tb-btn" onclick="getMonthlyReport()">Monthly</button>
                 <span class="ai-tb-sep"></span>
                 <button class="ai-tb-btn ai-tb-danger" id="stopBtn" onclick="stopAI()" style="display:none">Stop</button>
@@ -1119,7 +1116,8 @@ async function createPlan() {
         if (d.error) { appendMsg('ai', 'Error: ' + d.error); }
         else {
             appendMsg('ai', d.plan_text);
-            document.getElementById('planBuilder').style.display = 'none';
+            // Reload plan section to show the new plan
+            loadActivePlan();
             loadActivePlan();
         }
     } catch(e) {
