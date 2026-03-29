@@ -196,23 +196,35 @@
             <div class="hero-grid">
                 <div class="hero-item">
                     <span class="hero-item-icon">&#128694;</span>
-                    <span class="hero-item-val" id="heroSteps">-</span>
-                    <span class="hero-item-label">Steps</span>
+                    <div class="hero-item-data">
+                        <span class="hero-item-val" id="heroSteps">-</span>
+                        <span class="hero-item-label">Steps</span>
+                    </div>
+                    <span class="hero-item-pct" id="heroStepsPct"></span>
                 </div>
                 <div class="hero-item">
                     <span class="hero-item-icon">&#9889;</span>
-                    <span class="hero-item-val" id="heroCalories">-</span>
-                    <span class="hero-item-label">Calories</span>
+                    <div class="hero-item-data">
+                        <span class="hero-item-val" id="heroCalories">-</span>
+                        <span class="hero-item-label">Calories</span>
+                    </div>
+                    <span class="hero-item-pct" id="heroCalPct"></span>
                 </div>
                 <div class="hero-item">
                     <span class="hero-item-icon">&#128336;</span>
-                    <span class="hero-item-val" id="heroActiveTime">-</span>
-                    <span class="hero-item-label">Active</span>
+                    <div class="hero-item-data">
+                        <span class="hero-item-val" id="heroActiveTime">-</span>
+                        <span class="hero-item-label">Active</span>
+                    </div>
+                    <span class="hero-item-pct" id="heroTimePct"></span>
                 </div>
                 <div class="hero-item">
                     <span class="hero-item-icon">&#128205;</span>
-                    <span class="hero-item-val" id="heroDist">-</span>
-                    <span class="hero-item-label">Distance</span>
+                    <div class="hero-item-data">
+                        <span class="hero-item-val" id="heroDist">-</span>
+                        <span class="hero-item-label">Distance</span>
+                    </div>
+                    <span class="hero-item-pct" id="heroDistPct"></span>
                 </div>
             </div>
         </div>
@@ -347,7 +359,7 @@
             <!-- Chat -->
             <div id="aiChat" class="ai-chat">
                 <div class="ai-welcome">
-                    <div class="ai-avatar">AI</div>
+                    <div class="ai-avatar">&#10024;</div>
                     <div class="ai-bubble">What would you like to know? Tap <b>Today</b> for a workout recommendation.</div>
                 </div>
             </div>
@@ -1080,6 +1092,14 @@ function computeBioAge() {
 computeBioAge();
 
 // Update activity + extras on date change
+function setPct(id, val, goal) {
+    const el = document.getElementById(id);
+    if (!el || !val || !goal) { if (el) el.textContent = ''; return; }
+    const pct = Math.round(val / goal * 100);
+    el.textContent = pct + '%';
+    el.style.color = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--text3)' : 'var(--yellow)';
+}
+
 function updateActivity(ds) {
     const a = allActivity[ds];
     const card = document.getElementById('heroActivity');
@@ -1090,6 +1110,12 @@ function updateActivity(ds) {
     document.getElementById('heroCalories').textContent = a.calories.toLocaleString();
     document.getElementById('heroDist').textContent = a.distance ? (a.distance / 1000).toFixed(1) + ' km' : '-';
     document.getElementById('heroActiveTime').textContent = a.active_min > 0 ? fmtMin(a.active_min) : '-';
+
+    // Goals: 10k steps, 2400 cal, 30min active (WHO minimum), 6km
+    setPct('heroStepsPct', a.steps, 10000);
+    setPct('heroCalPct', a.calories, 2400);
+    setPct('heroTimePct', a.active_min, 30);
+    setPct('heroDistPct', a.distance / 1000, 6);
 }
 
 // Init
@@ -1123,7 +1149,7 @@ function appendMsg(r, t) {
     const d = document.createElement('div');
     d.className = 'ai-msg ai-msg-' + r;
     d.innerHTML = r === 'ai'
-        ? '<div class="ai-avatar">AI</div><div class="ai-bubble">' + fmtMd(t) + '</div>'
+        ? '<div class="ai-avatar">&#10024;</div><div class="ai-bubble">' + fmtMd(t) + '</div>'
         : '<div class="ai-bubble user-bubble">' + esc(t) + '</div>';
     chatEl.appendChild(d);
     chatEl.scrollTop = chatEl.scrollHeight;
@@ -1133,7 +1159,7 @@ function showTyping() {
     document.getElementById('stopBtn').style.display = '';
     const d = document.createElement('div');
     d.className = 'ai-msg ai-msg-ai ai-typing';
-    d.innerHTML = '<div class="ai-avatar">AI</div><div class="ai-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+    d.innerHTML = '<div class="ai-avatar">&#10024;</div><div class="ai-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
     chatEl.appendChild(d);
     chatEl.scrollTop = chatEl.scrollHeight;
 }
@@ -1152,7 +1178,7 @@ function stopAI() {
 function clearChat() {
     if (abortCtrl) { abortCtrl.abort(); abortCtrl = null; }
     hideTyping();
-    chatEl.innerHTML = '<div class="ai-welcome"><div class="ai-avatar">AI</div><div class="ai-bubble">Chat cleared. Ask me anything.</div></div>';
+    chatEl.innerHTML = '<div class="ai-welcome"><div class="ai-avatar">&#10024;</div><div class="ai-bubble">Chat cleared. Ask me anything.</div></div>';
 }
 
 async function getAdvice(p) {
