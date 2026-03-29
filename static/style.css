@@ -98,27 +98,21 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .mini-ring-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; color: var(--text); }
 .mini-ring-sub { font-size: 0.58rem; color: var(--text3); font-weight: 600; margin-top: 0.1rem; }
 
-/* Bio Age card */
-.card-bio-age { padding: 0.6rem 0.85rem; }
-.bio-age-row { display: flex; align-items: center; justify-content: space-between; }
-.bio-age-val { font-size: 1.4rem; font-weight: 900; }
-.bio-age-sub { display: block; font-size: 0.6rem; color: var(--text3); margin-top: 0.1rem; }
+/* Bio Age (uses score-card styles) */
 
 /* Hero Activity Card */
-.card-hero { padding: 1rem; }
-.hero-row { display: flex; align-items: center; gap: 1.5rem; }
-.hero-ring-lg { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
-.hero-ring-lg svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.hero-ring-lg .ring-track { stroke-width: 6; }
-.hero-ring-lg .ring-progress { stroke-width: 6; stroke-dasharray: 0 220; }
-.hero-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.hero-steps { font-size: 1.1rem; font-weight: 900; color: var(--text); line-height: 1; }
-.hero-steps-label { font-size: 0.5rem; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.hero-stats { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-.hero-stat { display: flex; align-items: center; gap: 0.4rem; }
-.hero-stat svg { color: var(--text3); flex-shrink: 0; }
-.hero-stat-val { font-size: 0.9rem; font-weight: 800; color: var(--text); }
-.hero-stat-unit { font-size: 0.62rem; color: var(--text3); font-weight: 500; }
+.card-hero { padding: 0.75rem 0.85rem; }
+.hero-bars { display: flex; flex-direction: column; gap: 0.45rem; }
+.hero-bar-item { }
+.hero-bar-head { display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.2rem; }
+.hero-bar-icon { font-size: 0.75rem; width: 18px; text-align: center; }
+.hero-bar-label { font-size: 0.65rem; color: var(--text2); font-weight: 500; flex: 1; }
+.hero-bar-val { font-size: 0.75rem; font-weight: 800; color: var(--text); }
+.hero-bar-track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.hero-bar-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width 0.5s ease; width: 0; }
+.hero-bar-cal { background: var(--yellow); }
+.hero-bar-time { background: var(--blue); }
+.hero-bar-dist { background: var(--purple); }
 
 /* Cards */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 0.85rem; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
