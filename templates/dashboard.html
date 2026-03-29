@@ -162,6 +162,40 @@
 
     <!-- ========== CENTER: Training ========== -->
     <div class="col col-center">
+        <!-- Hero Rings -->
+        <div class="hero-rings">
+            <div class="hero-ring" id="heroSleep">
+                <svg viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" class="ring-track"/>
+                    <circle cx="40" cy="40" r="34" class="ring-progress" id="heroSleepRing" style="stroke:var(--blue);stroke-dasharray:0 214"/>
+                </svg>
+                <div class="hero-ring-text">
+                    <span class="hero-ring-val" id="heroSleepVal">-</span>
+                    <span class="hero-ring-label">SLEEP</span>
+                </div>
+            </div>
+            <div class="hero-ring hero-ring-main" id="heroRecovery">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" class="ring-track"/>
+                    <circle cx="50" cy="50" r="42" class="ring-progress" id="heroRecoveryRing" style="stroke:var(--green);stroke-dasharray:0 264"/>
+                </svg>
+                <div class="hero-ring-text">
+                    <span class="hero-ring-val hero-ring-val-lg" id="heroRecoveryVal">-</span>
+                    <span class="hero-ring-label">RECOVERY</span>
+                </div>
+            </div>
+            <div class="hero-ring" id="heroStrain">
+                <svg viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" class="ring-track"/>
+                    <circle cx="40" cy="40" r="34" class="ring-progress" id="heroStrainRing" style="stroke:var(--yellow);stroke-dasharray:0 214"/>
+                </svg>
+                <div class="hero-ring-text">
+                    <span class="hero-ring-val" id="heroStrainVal">-</span>
+                    <span class="hero-ring-label">STRAIN</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Log Exercise Form (hidden) -->
         <div id="addExForm" class="card add-ex-form" style="display:none">
             <div class="form-row">
@@ -354,7 +388,36 @@ function navDate(dir) {
 document.getElementById('datePicker').addEventListener('change', function() { setDate(this.value); });
 
 // ===== Score Cards =====
+function updateHeroRings(ds) {
+    const sc = dailyScores[ds] || {};
+    const sl = sc.sleep;
+    const rd = sc.readiness;
+    const st = sc.stress;
+
+    // Sleep ring (0-100, circumference = 2*PI*34 = 213.6)
+    const sleepScore = sl ? sl.score : 0;
+    document.getElementById('heroSleepVal').textContent = sleepScore || '-';
+    const sleepRing = document.getElementById('heroSleepRing');
+    sleepRing.style.strokeDasharray = (sleepScore / 100 * 214) + ' 214';
+    sleepRing.style.stroke = sleepScore >= 80 ? 'var(--green)' : sleepScore >= 60 ? 'var(--blue)' : sleepScore >= 40 ? 'var(--yellow)' : 'var(--red)';
+
+    // Recovery ring (0-100, circumference = 2*PI*42 = 263.9)
+    const recScore = rd ? rd.score : 0;
+    document.getElementById('heroRecoveryVal').textContent = recScore || '-';
+    const recRing = document.getElementById('heroRecoveryRing');
+    recRing.style.strokeDasharray = (recScore / 100 * 264) + ' 264';
+    recRing.style.stroke = recScore >= 80 ? 'var(--green)' : recScore >= 60 ? 'var(--blue)' : recScore >= 40 ? 'var(--yellow)' : 'var(--red)';
+
+    // Strain ring — inverse of stress (high stress = high strain)
+    const strainScore = st ? st.stress_score : 0;
+    document.getElementById('heroStrainVal').textContent = strainScore ? strainScore.toFixed(0) : '-';
+    const strainRing = document.getElementById('heroStrainRing');
+    strainRing.style.strokeDasharray = (strainScore / 100 * 214) + ' 214';
+    strainRing.style.stroke = strainScore <= 30 ? 'var(--blue)' : strainScore <= 60 ? 'var(--yellow)' : 'var(--red)';
+}
+
 function updateScoreCards(ds) {
+    updateHeroRings(ds);
     const sc = dailyScores[ds] || {};
     const sl = sc.sleep;
     const rc = sc.recovery;

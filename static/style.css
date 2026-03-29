@@ -89,6 +89,62 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .col { display: flex; flex-direction: column; gap: 0.6rem; }
 .col-header { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); padding: 0; margin: 0; }
 
+/* Hero Rings */
+.hero-rings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.2rem 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.hero-ring {
+    position: relative;
+    width: 72px;
+    height: 72px;
+}
+
+.hero-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: var(--border); stroke-width: 5; }
+.ring-progress { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dasharray 0.8s ease, stroke 0.4s ease; }
+
+.hero-ring-main {
+    width: 96px;
+    height: 96px;
+}
+
+.hero-ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-ring-val {
+    font-size: 1.1rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text);
+}
+
+.hero-ring-val-lg {
+    font-size: 1.5rem;
+}
+
+.hero-ring-label {
+    font-size: 0.45rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-top: 0.15rem;
+}
+
 /* Cards */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 0.85rem; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .card-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.6rem; }
