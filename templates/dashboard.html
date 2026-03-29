@@ -1415,6 +1415,14 @@ async function loadWeeklyVolumes() {
 }
 loadWeeklyVolumes();
 
+// Redraw canvases on theme change (colors are baked at draw time)
+function redrawCanvases() {
+    setTimeout(function() {
+        if (hrLastSamples) drawHR(hrLastSamples);
+        loadWeeklyVolumes();
+    }, 50); // small delay for CSS vars to update
+}
+
 // ===== Weekly Report (center column, cheap model) =====
 async function getWeeklyReport() {
     appendMsg('user', 'Weekly training report');

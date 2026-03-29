@@ -51,6 +51,8 @@
         const isCurrentlyLight = document.documentElement.classList.contains('light');
         localStorage.setItem('theme', isCurrentlyLight ? 'dark' : 'light');
         applyTheme();
+        // Redraw all canvases so text colors update
+        if (typeof redrawCanvases === 'function') redrawCanvases();
     }
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
