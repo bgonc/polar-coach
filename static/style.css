@@ -213,11 +213,18 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .cal-day.selected.has-session { color: white; }
 .cal-day.has-data { color: var(--text); }
 
-/* Plan days = yellow text */
-.cal-day.has-plan { color: var(--yellow); }
-.cal-day.selected.has-plan { color: white; }
-/* Session overrides plan color */
-.cal-day.has-plan.has-session { color: var(--green); }
+/* Plan days = small orange dot */
+.cal-day.has-plan::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--yellow);
+}
+.cal-day.selected.has-plan::before { background: white; }
 
 /* Orienteering event days — soft purple fill */
 .cal-day.has-event { background: var(--purple-dim); color: var(--purple); font-weight: 600; }
@@ -579,9 +586,9 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 :root.light .form-input, :root.light .ai-input { background: var(--surface2); }
 :root.light .cal-day { color: var(--text2); }
 :root.light .cal-day.today { color: var(--text); }
-:root.light .cal-day.has-data { color: var(--text); }
 :root.light .cal-day:hover { background: var(--bg2); }
 :root.light .cal-day.selected { background: var(--accent); color: white; }
+:root.light .cal-day.has-session { color: var(--green); }
 :root.light .score-card:hover { border-color: var(--border2); }
 :root.light .session-item { background: var(--surface2); }
 :root.light .session-item:hover { background: var(--bg2); }
