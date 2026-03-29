@@ -341,7 +341,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
 /* === AI Coach === */
 /* Plan card */
-.card-plan { padding: 0.75rem; }
+/* plan merged into AI card */
 .plan-builder { margin-top: 0.5rem; }
 .plan-types { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem; }
 .plan-type {
@@ -358,16 +358,11 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 }
 .btn-create-plan:hover { opacity: 0.85; }
 
-.active-plan { margin-bottom: 0.25rem; }
-.plan-active-header { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
-.plan-badge { font-size: 0.62rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 8px; background: var(--green-dim); color: var(--green); }
-.plan-race { font-size: 0.7rem; font-weight: 600; color: var(--text); }
-.plan-date { font-size: 0.62rem; color: var(--text3); }
-.plan-delete { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 1rem; margin-left: auto; padding: 0 0.3rem; }
-.plan-delete:hover { color: var(--red); }
-.plan-toggle { font-size: 0.62rem; color: var(--blue); font-weight: 600; cursor: pointer; }
-.plan-active-header { cursor: pointer; }
-.plan-active-header:hover .plan-toggle { text-decoration: underline; }
+.ai-plan-bar { margin-bottom: 0.35rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); }
+.plan-status-row { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+.plan-badge { font-size: 0.6rem; font-weight: 700; padding: 0.12rem 0.4rem; border-radius: 6px; background: var(--green-dim); color: var(--green); }
+.plan-race { font-size: 0.66rem; font-weight: 600; color: var(--text); }
+.plan-date { font-size: 0.58rem; color: var(--text3); }
 
 .plan-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
 .plan-content.expanded { max-height: 2000px; overflow-y: auto; }

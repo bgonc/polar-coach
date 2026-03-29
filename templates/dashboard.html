@@ -277,14 +277,40 @@
         </div>
 
         {% if has_ai %}
-
-        <!-- Training Plan Builder -->
-        <div class="card card-plan">
-            <div class="card-label">
-                Training Plan
-                <button class="toggle-form-btn" onclick="document.getElementById('planBuilder').style.display=document.getElementById('planBuilder').style.display==='none'?'block':'none'">+</button>
+        <div class="card card-ai-main">
+            <!-- Plan status + actions -->
+            <div class="ai-plan-bar">
+                <div id="activePlan" class="active-plan"></div>
             </div>
-            <div id="activePlan" class="active-plan"></div>
+
+            <!-- Toolbar -->
+            <div class="ai-toolbar">
+                <button class="ai-tb-btn ai-tb-primary" onclick="getAdvice()">Today</button>
+                <button class="ai-tb-btn" onclick="adjustPlan()">Adjust Plan</button>
+                <button class="ai-tb-btn" onclick="getAdvice('How is my recovery?')">Recovery</button>
+                <button class="ai-tb-btn" onclick="getMonthlyReport()">Monthly</button>
+                <span class="ai-tb-sep"></span>
+                <button class="ai-tb-btn ai-tb-danger" id="stopBtn" onclick="stopAI()" style="display:none">Stop</button>
+                <button class="ai-tb-btn ai-tb-muted" onclick="clearChat()">Clear</button>
+            </div>
+
+            <!-- Chat -->
+            <div id="aiChat" class="ai-chat">
+                <div class="ai-welcome">
+                    <div class="ai-avatar">AI</div>
+                    <div class="ai-bubble">What would you like to know? Tap <b>Today</b> for a workout recommendation.</div>
+                </div>
+            </div>
+
+            <!-- Input -->
+            <div class="ai-input-row">
+                <input type="text" id="aiPrompt" placeholder="Ask your coach..." class="ai-input" onkeydown="if(event.key==='Enter')sendChat()">
+                <button class="ai-send" onclick="sendChat()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+
+            <!-- Plan builder (hidden, toggled from plan bar) -->
             <div id="planBuilder" class="plan-builder" style="display:none">
                 <div class="plan-types">
                     <button class="plan-type selected" onclick="selectPlanType(this,'general')">General Fitness</button>
@@ -294,38 +320,12 @@
                 </div>
                 <div id="raceFields" class="race-fields" style="display:none">
                     <div class="form-row">
-                        <input type="text" id="raceDistance" placeholder="Distance (e.g. 10km, half marathon)" class="form-input">
-                        <input type="date" id="raceDate" placeholder="Race date" class="form-input">
+                        <input type="text" id="raceDistance" placeholder="Distance (e.g. 10km)" class="form-input">
+                        <input type="date" id="raceDate" class="form-input">
                     </div>
                 </div>
-                <input type="text" id="planNotes" placeholder="Any specific notes for the plan..." class="form-input" style="margin-bottom:0.4rem">
+                <input type="text" id="planNotes" placeholder="Notes for the plan..." class="form-input" style="margin-bottom:0.4rem">
                 <button class="btn-create-plan" onclick="createPlan()">Create Plan</button>
-            </div>
-        </div>
-
-        <!-- Chat -->
-        <div class="card card-ai-main">
-            <div class="ai-toolbar">
-                <button class="ai-tb-btn ai-tb-primary" onclick="getAdvice()">Today</button>
-                <button class="ai-tb-btn" onclick="adjustPlan()">Adjust</button>
-                <button class="ai-tb-btn" onclick="getAdvice('How is my recovery?')">Recovery</button>
-                <button class="ai-tb-btn" onclick="getAdvice('Show me upcoming orienteering events')">Events</button>
-                <button class="ai-tb-btn" onclick="getMonthlyReport()">Monthly</button>
-                <span class="ai-tb-sep"></span>
-                <button class="ai-tb-btn ai-tb-danger" id="stopBtn" onclick="stopAI()" style="display:none">Stop</button>
-                <button class="ai-tb-btn ai-tb-muted" onclick="clearChat()">Clear</button>
-            </div>
-            <div id="aiChat" class="ai-chat">
-                <div class="ai-welcome">
-                    <div class="ai-avatar">AI</div>
-                    <div class="ai-bubble">What would you like to know? Tap <b>Today</b> for a workout recommendation.</div>
-                </div>
-            </div>
-            <div class="ai-input-row">
-                <input type="text" id="aiPrompt" placeholder="Ask your coach..." class="ai-input" onkeydown="if(event.key==='Enter')sendChat()">
-                <button class="ai-send" onclick="sendChat()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                </button>
             </div>
         </div>
         {% else %}
@@ -1182,7 +1182,7 @@ async function loadActivePlan() {
         const r = await fetch('/api/plan');
         const plan = await r.json();
         if (!plan) {
-            el.innerHTML = '<div class="no-plan">No active plan. Create one above.</div>';
+            el.innerHTML = '<button class="ai-tb-btn ai-tb-muted" onclick="document.getElementById(\'planBuilder\').style.display=document.getElementById(\'planBuilder\').style.display===\'none\'?\'block\':\'none\'">+ New Plan</button>';
             planSchedule = {};
             renderCalendar();
             return;
@@ -1201,12 +1201,12 @@ async function loadActivePlan() {
         const created = plan.created ? new Date(plan.created).toLocaleDateString() : '';
         const planHtml = plan.plan_text ? fmtMd(plan.plan_text) : '';
         el.innerHTML = `
-            <div class="plan-active-header" onclick="document.getElementById('planContent').classList.toggle('expanded')">
+            <div class="plan-status-row">
                 <span class="plan-badge">${labels[type] || type}</span>
                 ${plan.race_distance ? '<span class="plan-race">' + esc(plan.race_distance) + (plan.race_date ? ' — ' + plan.race_date : '') + '</span>' : ''}
                 <span class="plan-date">since ${created}</span>
-                <span class="plan-toggle">View</span>
-                <button class="plan-delete" onclick="event.stopPropagation();deletePlan()" title="Delete plan">&times;</button>
+                <button class="ai-tb-btn ai-tb-muted" onclick="document.getElementById('planContent').classList.toggle('expanded')">View</button>
+                <button class="ai-tb-btn ai-tb-muted" onclick="deletePlan()">&times;</button>
             </div>
             <div class="plan-content" id="planContent">
                 <div class="plan-text">${planHtml}</div>
