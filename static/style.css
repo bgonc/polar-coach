@@ -395,15 +395,15 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .col-left .card:last-child { flex: 1; }
 .col-right { display: flex; flex-direction: column; }
 .card-ai-main { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 0.75rem; }
-.ai-quick-actions { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.65rem; }
-.chip { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.6rem; background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; color: var(--text2); font-size: 0.68rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-.chip:hover { border-color: var(--text3); color: var(--text); }
-.chip-active { background: var(--accent); border-color: var(--accent); color: white; }
-.chip-active:hover { background: #c0392b; border-color: #c0392b; }
-.chip-danger { border-color: var(--red); color: var(--red); }
-.chip-danger:hover { background: var(--red-dim); }
-.chip-clear { border-color: var(--text3); color: var(--text3); }
-.chip-clear:hover { color: var(--text); border-color: var(--text2); }
+/* AI Toolbar */
+.ai-toolbar { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-bottom: 0.6rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+.ai-tb-btn { padding: 0.25rem 0.55rem; background: none; border: none; border-radius: 6px; color: var(--text2); font-size: 0.68rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+.ai-tb-btn:hover { background: var(--surface2); color: var(--text); }
+.ai-tb-primary { color: var(--accent); font-weight: 700; }
+.ai-tb-primary:hover { background: var(--red-dim); }
+.ai-tb-danger { color: var(--red); display: none; }
+.ai-tb-muted { color: var(--text3); font-weight: 500; }
+.ai-tb-sep { width: 1px; background: var(--border); margin: 0.15rem 0.1rem; }
 
 .ai-chat { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.65rem; min-height: 200px; padding-right: 0.2rem; }
 .ai-chat::-webkit-scrollbar { width: 4px; }
@@ -592,8 +592,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 :root.light .user-bubble { background: var(--accent); border-color: var(--accent); color: white; }
 :root.light .btn-connect { box-shadow: 0 4px 20px rgba(197,48,64,0.15); }
 :root.light .loading-overlay { background: rgba(241,243,245,0.75); }
-:root.light .chip { background: var(--surface2); border-color: var(--border); }
-:root.light .chip-active { background: var(--accent); border-color: var(--accent); color: white; }
+:root.light .ai-tb-btn:hover { background: var(--bg2); }
 :root.light .form-input, :root.light .ai-input { background: var(--surface2); }
 :root.light .cal-day { color: var(--text2); }
 :root.light .cal-day.today { color: var(--text); }

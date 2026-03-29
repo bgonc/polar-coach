@@ -305,19 +305,20 @@
 
         <!-- Chat -->
         <div class="card card-ai-main">
-            <div class="ai-quick-actions">
-                <button class="chip chip-active" onclick="getAdvice()">Today</button>
-                <button class="chip" onclick="adjustPlan()">Adjust Plan</button>
-                <button class="chip" onclick="getAdvice('How is my recovery?')">Recovery</button>
-                <button class="chip" onclick="getAdvice('Show me upcoming orienteering events and suggest which to attend')">Events</button>
-                <button class="chip" onclick="getMonthlyReport()">Monthly Report</button>
-                <button class="chip chip-danger" id="stopBtn" onclick="stopAI()" style="display:none">Stop</button>
-                <button class="chip chip-clear" onclick="clearChat()">Clear</button>
+            <div class="ai-toolbar">
+                <button class="ai-tb-btn ai-tb-primary" onclick="getAdvice()">Today</button>
+                <button class="ai-tb-btn" onclick="adjustPlan()">Adjust</button>
+                <button class="ai-tb-btn" onclick="getAdvice('How is my recovery?')">Recovery</button>
+                <button class="ai-tb-btn" onclick="getAdvice('Show me upcoming orienteering events')">Events</button>
+                <button class="ai-tb-btn" onclick="getMonthlyReport()">Monthly</button>
+                <span class="ai-tb-sep"></span>
+                <button class="ai-tb-btn ai-tb-danger" id="stopBtn" onclick="stopAI()" style="display:none">Stop</button>
+                <button class="ai-tb-btn ai-tb-muted" onclick="clearChat()">Clear</button>
             </div>
             <div id="aiChat" class="ai-chat">
-                <div class="ai-welcome" id="aiWelcome">
+                <div class="ai-welcome">
                     <div class="ai-avatar">AI</div>
-                    <div class="ai-bubble" id="aiWelcomeBubble">Loading your data...</div>
+                    <div class="ai-bubble">What would you like to know? Tap <b>Today</b> for a workout recommendation.</div>
                 </div>
             </div>
             <div class="ai-input-row">
@@ -995,34 +996,6 @@ renderWeekDots();
 // Init
 setDate(currentDate);
 
-// Proactive AI welcome message
-(function() {
-    const sc = dailyScores[today] || dailyScores[Object.keys(dailyScores).sort().pop()] || {};
-    const rd = sc.readiness;
-    const sl = sc.sleep;
-    const rc = sc.recovery;
-    const st = sc.stress;
-    const bubble = document.getElementById('aiWelcomeBubble');
-    if (!bubble) return;
-
-    let lines = [];
-    if (rd) {
-        if (rd.score >= 80) lines.push(`Readiness ${rd.score}/100 — great day for a solid session.`);
-        else if (rd.score >= 60) lines.push(`Readiness ${rd.score}/100 — good for moderate training.`);
-        else if (rd.score >= 40) lines.push(`Readiness ${rd.score}/100 — take it easy today.`);
-        else lines.push(`Readiness ${rd.score}/100 — consider resting.`);
-    }
-    if (sl && sl.score > 0) {
-        if (sl.score < 60) lines.push(`Sleep was only ${sl.score}/100 (${sl.hours}h) — recovery may be impaired.`);
-        else if (sl.hours < 6.5) lines.push(`Short sleep (${sl.hours}h) — try to get more tonight.`);
-    }
-    if (rc && rc.ans_charge <= -3) lines.push(`ANS charge low (${rc.ans_charge.toFixed(1)}) — your nervous system is strained.`);
-    if (st && st.stress_score >= 60) lines.push(`Stress elevated (${st.stress_score}/100) — lighter session recommended.`);
-
-    if (!lines.length) lines.push('Your data looks good today. Ask me for a workout or tap Today above.');
-
-    bubble.textContent = lines.join(' ');
-})();
 
 // ===== Exercise Logging =====
 function toggleForm() { const f=document.getElementById('addExForm'); f.style.display=f.style.display==='none'?'block':'none'; }
