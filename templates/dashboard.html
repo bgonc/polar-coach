@@ -1424,9 +1424,11 @@ async function loadRacePredictions() {
         const card = document.getElementById('racePredCard');
         card.style.display = '';
         const grid = document.getElementById('raceGrid');
-        grid.innerHTML = Object.entries(preds).map(([name, d]) =>
-            `<div class="race-item"><span class="race-dist">${name}</span><span class="race-time">${d.time}</span><span class="race-pace">${d.pace}/km</span></div>`
-        ).join('');
+        const order = ['5K', '10K', 'Half Marathon', 'Marathon'];
+        grid.innerHTML = order.filter(n => preds[n]).map(name => {
+            const d = preds[name];
+            return `<div class="race-item"><span class="race-dist">${name}</span><span class="race-time">${d.time}</span><span class="race-pace">${d.pace}/km</span></div>`;
+        }).join('');
     } catch(e) {}
 }
 loadRacePredictions();
