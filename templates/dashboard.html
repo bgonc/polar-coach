@@ -906,7 +906,7 @@ function renderCalendar() {
         if(ds===currentDate) c+=' selected';
         if(ds===today) c+=' today';
         if(exerciseDates.has(ds)) c+=' has-session';
-        if(planSchedule[ds]) c+=' has-plan';
+        if(planSchedule[ds] && planSchedule[ds].type !== 'rest') c+=' has-plan';
         if(eventsByDate[ds]) c+=' has-event';
         let tip = '';
         if(planSchedule[ds]) tip = planSchedule[ds].title;
