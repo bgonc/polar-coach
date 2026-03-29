@@ -123,10 +123,12 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .readiness-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 900; }
 
 .score-mini { font-size: 1.05rem; font-weight: 800; color: var(--text2); flex-shrink: 0; }
+.stress-mini-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; flex-shrink: 0; }
+.stress-bar-mini { width: 48px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.stress-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease, background 0.4s ease; }
 
 .score-detail { max-height: 0; overflow: hidden; transition: max-height 0.25s ease, padding 0.25s ease; padding: 0 0.85rem; }
 .score-card.expanded .score-detail { max-height: 350px; padding: 0 0.85rem 0.65rem; }
-.score-card.expanded .score-detail-stress { max-height: 500px; }
 .score-card.expanded { border-color: var(--border2); }
 
 .detail-row { display: flex; justify-content: space-between; padding: 0.28rem 0; border-bottom: 1px solid var(--border); font-size: 0.7rem; }
@@ -151,10 +153,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .trend.stable { color: var(--text3); }
 .trend.declining { color: var(--red); }
 
-/* Stress chart in score card */
-.stress-chart-wrap { margin-top: 0.5rem; padding-top: 0.4rem; border-top: 1px solid var(--border); }
-.stress-chart-label { font-size: 0.6rem; color: var(--text3); font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.04em; }
-#stressCanvas { width: 100%; height: 90px; display: block; }
+/* (stress chart removed — replaced by mini bar) */
 
 /* HR Chart */
 .hr-toggles { float: right; display: flex; gap: 0.25rem; }

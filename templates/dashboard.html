@@ -107,20 +107,16 @@
                         <span class="score-name">Stress</span>
                         <span id="stressPill" class="pill">-</span>
                     </div>
-                    <span id="stressMini" class="score-mini">-</span>
+                    <div class="stress-mini-wrap">
+                        <span id="stressMini" class="score-mini">-</span>
+                        <div class="stress-bar-mini" id="stressBarMini"><div class="stress-bar-fill" id="stressBarFill"></div></div>
+                    </div>
                 </div>
-                <div class="score-detail score-detail-stress" id="stressDetail">
+                <div class="score-detail" id="stressDetail">
                     <div class="detail-row"><span>Overall</span><span id="dStressTotal">-</span></div>
                     <div class="detail-row"><span>ANS component</span><span id="dStressAns">-</span></div>
                     <div class="detail-row"><span>HRV component</span><span id="dStressHrv">-</span></div>
                     <div class="detail-row"><span>HR component</span><span id="dStressHr">-</span></div>
-                    <div class="stress-chart-wrap">
-                        <div class="stress-chart-label">Stress proxy (HR vs resting) &amp; Night HRV</div>
-                        <canvas id="stressCanvas" width="300" height="90"></canvas>
-                    </div>
-                    <div class="body-battery" id="bodyBatteryWrap" style="display:none">
-                        <div class="stress-chart-label">Body Battery (estimated)</div>
-                        <canvas id="bodyBatteryCanvas" width="300" height="70"></canvas>
                     </div>
                 </div>
             </div>
@@ -468,6 +464,10 @@ function updateScoreCards(ds) {
     if (st) {
         setPill('stressPill', st.label, st.color);
         document.getElementById('stressMini').textContent = st.stress_score;
+        // Mini bar
+        const barFill = document.getElementById('stressBarFill');
+        barFill.style.width = st.stress_score + '%';
+        barFill.style.background = `var(--${st.color})`;
         document.getElementById('dStressTotal').textContent = st.stress_score + '/100';
         document.getElementById('dStressAns').textContent = st.ans_stress + '/100';
         document.getElementById('dStressHrv').textContent = st.hrv_stress + '/100';
