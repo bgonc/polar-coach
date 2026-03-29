@@ -893,6 +893,9 @@ function updateCurrentStress(samples) {
     if (!el || !samples || !samples.length) { if (el) el.textContent = ''; return; }
 
     // Get the last HR sample
+    // Only show "now" for today
+    if (currentDate !== today) { el.textContent = ''; return; }
+
     const last = samples[samples.length - 1];
     if (!last || !last.heart_rate) { el.textContent = ''; return; }
 

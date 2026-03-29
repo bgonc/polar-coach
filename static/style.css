@@ -315,7 +315,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .wd.today { border-color: var(--text2); }
 .wd.today .wd-letter { color: var(--text); }
 .wd.today.done { border-color: var(--green); }
-.wd.selected { box-shadow: 0 0 0 2px var(--accent); }
+.wd.selected:not(.today) { box-shadow: 0 0 0 2px var(--accent); }
 #sessionsDateLabel { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text2); }
 
 /* === Sessions === */
