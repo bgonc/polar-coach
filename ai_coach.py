@@ -17,10 +17,14 @@ AI_MODELS = {
 }
 
 DEFAULT_MODEL = "gpt-5.4-nano"
+PREMIUM_MODEL = "claude-sonnet"  # For 3rd column AI chat, monthly reports, deep analysis
 
 
-def _get_model_id():
+def _get_model_id(task="default"):
+    """Get model ID based on task type. Premium tasks use Claude, quick tasks use profile default."""
     from local_data import get_profile
+    if task == "premium":
+        return AI_MODELS.get(PREMIUM_MODEL, AI_MODELS[DEFAULT_MODEL])["id"]
     p = get_profile()
     key = p.get("ai_model", DEFAULT_MODEL)
     return AI_MODELS.get(key, AI_MODELS[DEFAULT_MODEL])["id"]
@@ -221,7 +225,33 @@ def _build_full_context(sleep_data, recharge_data, exercises, hr_data, coaching_
 
 # ========== API Functions ==========
 
+def get_session_insight(exercise_data):
+    """Quick AI insight for a specific exercise session. Uses cheap model."""
+    client = _get_client()
+    if not client: return None
+
+    profile = _get_athlete_profile()
+    ex = exercise_data
+    prompt = f"""{profile}
+
+Session: {ex.get('sport','?')}, {ex.get('duration','?')}, {ex.get('date','?')}
+Distance: {ex.get('distance_km','')}km, Calories: {ex.get('calories','')}, Avg HR: {ex.get('avg_hr','')}bpm
+Benefit: {ex.get('training_benefit','')}
+
+Give a 2-3 sentence analysis of this session: was it effective? What did it train? Suggestion for next similar session."""
+
+    response = client.chat.completions.create(
+        model=_get_model_id("default"),
+        messages=[
+            {"role": "system", "content": "You are a concise running/fitness coach. Analyze the session in 2-3 sentences."},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return response.choices[0].message.content
+
+
 def get_ai_advice(sleep_data, recharge_data, exercises, hr_data, coaching_analysis, prompt=None, training_summary=None, location=""):
+    """AI chat in the 3rd column — uses premium model."""
     client = _get_client()
     if not client: return None
 
@@ -229,7 +259,7 @@ def get_ai_advice(sleep_data, recharge_data, exercises, hr_data, coaching_analys
     user_prompt = prompt or "What should I do today? Give me a specific workout or rest recommendation."
 
     response = client.chat.completions.create(
-        model=_get_model_id(),
+        model=_get_model_id("premium"),
         messages=[
             {"role": "system", "content": _system_prompt()},
             {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n\n{user_prompt}"},
@@ -335,16 +365,34 @@ Should I follow today's plan, modify it, or skip? Give adjusted workout."""
 
 
 def generate_weekly_report(sleep_data, recharge_data, exercises, coaching, training_sum, location=""):
+    """Weekly report — uses cheap default model."""
+    client = _get_client()
+    if not client: return None
+
+    context = _build_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
+
+    response = client.chat.completions.create(
+        model=_get_model_id("default"),
+        messages=[
+            {"role": "system", "content": _system_prompt()},
+            {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n\nWeekly report: training done, recovery trends, what went well, what to improve. 3-4 paragraphs."},
+        ],
+    )
+    return response.choices[0].message.content
+
+
+def generate_monthly_report(sleep_data, recharge_data, exercises, coaching, training_sum, location=""):
+    """Monthly report — uses premium model for deep analysis."""
     client = _get_client()
     if not client: return None
 
     context = _build_full_context(sleep_data, recharge_data, exercises, None, coaching, training_sum, location)
 
     response = client.chat.completions.create(
-        model=_get_model_id(),
+        model=_get_model_id("premium"),
         messages=[
             {"role": "system", "content": _system_prompt()},
-            {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n\nWeekly report: training summary, recovery trends, key observations, next week recommendations. 4-6 paragraphs."},
+            {"role": "user", "content": f"{datetime.now().strftime('%A %d.%m.%Y')}\n{context}\n\nMonthly report: training volume trends, fitness progression, recovery patterns, sleep quality trends, key achievements, areas to improve, recommendations for next month. Be thorough and analytical."},
         ],
     )
     return response.choices[0].message.content

@@ -268,7 +268,11 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 .rex-sport { font-weight: 600; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rex-dur { font-size: 0.62rem; color: var(--text2); flex-shrink: 0; }
 .rex-detail { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; padding: 0 0.5rem; background: var(--bg2); border-radius: 0 0 var(--r-sm) var(--r-sm); }
-.rex.expanded .rex-detail { max-height: 180px; padding: 0.35rem 0.5rem; }
+.rex.expanded .rex-detail { max-height: 220px; padding: 0.35rem 0.5rem; }
+.rex-ai-btn { display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.35rem; padding: 0.25rem 0.5rem; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 0.6rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: opacity 0.15s; }
+.rex-ai-btn:hover { opacity: 0.85; }
+.week-report-btn { display: inline-flex; align-items: center; gap: 0.25rem; margin-top: 0.35rem; padding: 0.2rem 0.5rem; background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text3); font-size: 0.58rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.week-report-btn:hover { color: var(--text); border-color: var(--text3); }
 
 /* Training Summary */
 .card-training-sum { padding: 0.75rem 0.85rem; }

@@ -205,6 +205,10 @@
                         <button class="cal-nav cal-nav-sm" onclick="weekNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg></button>
                     </div>
                     <div class="week-dots-row" id="weekDots"></div>
+                    <button class="week-report-btn" onclick="getWeeklyReport()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Weekly Report
+                    </button>
                 </div>
 
                 <!-- Recent exercises (last 10) -->
@@ -224,6 +228,10 @@
                             {% if e.calories %}<div class="detail-row"><span>Calories</span><span>{{ e.calories }}</span></div>{% endif %}
                             {% if e.avg_hr and e.avg_hr != '-' and e.avg_hr != 0 %}<div class="detail-row"><span>Avg HR</span><span>{{ e.avg_hr }} bpm</span></div>{% endif %}
                             {% if e.source == 'manual' %}<div class="detail-row"><span>Source</span><span>Manual</span></div>{% endif %}
+                            <button class="rex-ai-btn" onclick="event.stopPropagation();getSessionInsight({{ e | tojson | e }})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                                AI Insight
+                            </button>
                         </div>
                     </div>
                     {% endfor %}
@@ -307,7 +315,7 @@
                 <button class="chip" onclick="adjustPlan()">Adjust Plan</button>
                 <button class="chip" onclick="getAdvice('How is my recovery?')">Recovery</button>
                 <button class="chip" onclick="getAdvice('Show me upcoming orienteering events and suggest which to attend')">Events</button>
-                <button class="chip" onclick="getWeeklyReport()">Weekly Report</button>
+                <button class="chip" onclick="getMonthlyReport()">Monthly Report</button>
                 <button class="chip chip-danger" id="stopBtn" onclick="stopAI()" style="display:none">Stop</button>
                 <button class="chip chip-clear" onclick="clearChat()">Clear</button>
             </div>
@@ -1382,25 +1390,45 @@ async function loadWeeklyVolumes() {
 }
 loadWeeklyVolumes();
 
-// ===== Weekly Report =====
+// ===== Weekly Report (center column, cheap model) =====
 async function getWeeklyReport() {
-    appendMsg('user', 'Generate my weekly training report.');
+    appendMsg('user', 'Weekly training report');
     showTyping();
     abortCtrl = new AbortController();
     try {
-        const r = await fetch('/api/weekly-report', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: '{}',
-            signal: abortCtrl.signal,
-        });
+        const r = await fetch('/api/weekly-report', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}', signal: abortCtrl.signal });
         const d = await r.json();
         hideTyping();
         appendMsg('ai', d.error ? 'Error: ' + d.error : d.report);
-    } catch(e) {
+    } catch(e) { hideTyping(); if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message); }
+    abortCtrl = null;
+}
+
+// ===== Monthly Report (AI column, premium model) =====
+async function getMonthlyReport() {
+    appendMsg('user', 'Monthly training report (deep analysis)');
+    showTyping();
+    abortCtrl = new AbortController();
+    try {
+        const r = await fetch('/api/monthly-report', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}', signal: abortCtrl.signal });
+        const d = await r.json();
         hideTyping();
-        if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message);
-    }
+        appendMsg('ai', d.error ? 'Error: ' + d.error : d.report);
+    } catch(e) { hideTyping(); if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message); }
+    abortCtrl = null;
+}
+
+// ===== Session Insight (cheap model) =====
+async function getSessionInsight(exercise) {
+    appendMsg('user', 'Analyze my ' + exercise.sport + ' session from ' + exercise.date);
+    showTyping();
+    abortCtrl = new AbortController();
+    try {
+        const r = await fetch('/api/session-insight', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(exercise), signal: abortCtrl.signal });
+        const d = await r.json();
+        hideTyping();
+        appendMsg('ai', d.error ? 'Error: ' + d.error : d.insight);
+    } catch(e) { hideTyping(); if (e.name !== 'AbortError') appendMsg('ai', 'Error: ' + e.message); }
     abortCtrl = null;
 }
 

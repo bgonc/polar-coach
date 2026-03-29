@@ -659,6 +659,49 @@ def api_weekly_report():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/monthly-report", methods=["POST"])
+def api_monthly_report():
+    if "access_token" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    from ai_coach import generate_monthly_report
+
+    client = get_client()
+    errors = []
+    sleep_data = _fetch_with_cache("sleep", client.get_sleep, errors, "sleep")
+    recharge_data = _fetch_with_cache("recharge", client.get_nightly_recharge, errors, "recharge")
+    local_exercises = local_get_exercises()
+    training_sum = get_training_summary(local_exercises)
+    all_exercises = (_fetch_with_cache("exercises", client.get_exercises, errors, "exercises") or []) + local_exercises
+    coaching = analyze_training(all_exercises, sleep_data, recharge_data, training_sum)
+    loc = session.get("location", "")
+
+    try:
+        report = generate_monthly_report(sleep_data, recharge_data, all_exercises, coaching, training_sum, loc)
+        if report is None:
+            return jsonify({"error": "API key not set"}), 500
+        return jsonify({"report": report})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/session-insight", methods=["POST"])
+def api_session_insight():
+    if "access_token" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    from ai_coach import get_session_insight
+
+    data = request.json
+    try:
+        insight = get_session_insight(data)
+        if insight is None:
+            return jsonify({"error": "API key not set"}), 500
+        return jsonify({"insight": insight})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/logout")
 def logout():
     session.clear()
